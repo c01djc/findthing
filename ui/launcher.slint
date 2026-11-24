@@ -1,0 +1,1562 @@
+export struct Row {
+    kind: string,
+    lead: string,
+    hit: string,
+    tail: string,
+    detail: string,
+}
+
+component Mark inherits Image {
+    source: @image-url("../brand/icon.svg");
+    image-fit: contain;
+    image-rendering: smooth;
+    width: 26px;
+    height: 26px;
+}
+
+component KindMark inherits Rectangle {
+    in property <string> kind;
+    in property <bool> on-dark: false;
+    width: 18px;
+    height: 18px;
+    background: transparent;
+    property <color> glyph: on-dark ? #f4f0e6 : #172033;
+    property <color> hole: on-dark ? #172033 : #f4f0e6;
+    property <color> mark: on-dark ? #f4f0e6 : #ef4e32;
+
+    if root.kind == "command": Rectangle {
+        width: 16px;
+        height: 16px;
+        x: 1px;
+        y: 1px;
+        border-radius: 4px;
+        background: root.mark;
+    }
+
+    if root.kind == "dir": Rectangle {
+        y: 5px;
+        width: 16px;
+        height: 11px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle {
+            y: -2px;
+            width: 7px;
+            height: 3px;
+            border-radius: 1px;
+            background: root.glyph;
+        }
+        Rectangle {
+            x: 1px;
+            y: 3px;
+            width: 14px;
+            height: 7px;
+            border-radius: 1px;
+            background: root.hole;
+        }
+    }
+
+    if root.kind == "zip": Rectangle {
+        x: 2px;
+        y: 1px;
+        width: 14px;
+        height: 16px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle { x: 6px; y: 1px; width: 2px; height: 3px; background: #ef4e32; }
+        Rectangle { x: 6px; y: 5px; width: 2px; height: 3px; background: #ef4e32; }
+        Rectangle { x: 6px; y: 9px; width: 2px; height: 3px; background: #ef4e32; }
+        Rectangle { x: 6px; y: 13px; width: 2px; height: 2px; background: root.hole; }
+    }
+
+    if root.kind == "image": Rectangle {
+        x: 1px;
+        y: 3px;
+        width: 16px;
+        height: 12px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle {
+            x: 2px;
+            y: 2px;
+            width: 3px;
+            height: 3px;
+            border-radius: 2px;
+            background: #ef4e32;
+        }
+        Rectangle {
+            x: 1px;
+            y: 8px;
+            width: 14px;
+            height: 3px;
+            background: root.hole;
+        }
+    }
+
+    if root.kind == "html" || root.kind == "code": Rectangle {
+        x: 1px;
+        y: 2px;
+        width: 16px;
+        height: 14px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle { x: 3px; y: 4px; width: 2px; height: 6px; background: root.hole; }
+        Rectangle { x: 3px; y: 4px; width: 4px; height: 1.5px; background: root.hole; }
+        Rectangle { x: 3px; y: 8.5px; width: 4px; height: 1.5px; background: root.hole; }
+        Rectangle { x: 11px; y: 4px; width: 2px; height: 6px; background: root.hole; }
+        Rectangle { x: 9px; y: 4px; width: 4px; height: 1.5px; background: root.hole; }
+        Rectangle { x: 9px; y: 8.5px; width: 4px; height: 1.5px; background: root.hole; }
+    }
+
+    if root.kind == "doc" || root.kind == "file": Rectangle {
+        x: 3px;
+        y: 1px;
+        width: 12px;
+        height: 16px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle { x: 2px; y: 6px; width: 8px; height: 1.5px; background: root.hole; }
+        Rectangle { x: 2px; y: 9px; width: 6px; height: 1.5px; background: root.kind == "doc" ? root.hole : transparent; }
+    }
+
+    if root.kind == "sheet": Rectangle {
+        x: 1px;
+        y: 1px;
+        width: 16px;
+        height: 16px;
+        border-radius: 2px;
+        background: root.glyph;
+        Rectangle { width: 16px; height: 4px; background: #ef4e32; }
+        Rectangle { y: 7px; width: 16px; height: 1px; background: root.hole; }
+        Rectangle { y: 11px; width: 16px; height: 1px; background: root.hole; }
+        Rectangle { x: 5px; y: 4px; width: 1px; height: 12px; background: root.hole; }
+        Rectangle { x: 10px; y: 4px; width: 1px; height: 12px; background: root.hole; }
+    }
+
+    if root.kind == "pdf": Rectangle {
+        x: 3px;
+        y: 1px;
+        width: 12px;
+        height: 16px;
+        border-radius: 2px;
+        background: #ef4e32;
+        Rectangle { x: 2px; y: 6px; width: 8px; height: 1.5px; background: root.hole; }
+        Rectangle { x: 2px; y: 9px; width: 6px; height: 1.5px; background: root.hole; }
+    }
+}
+
+component NameLine inherits HorizontalLayout {
+    in property <string> lead;
+    in property <string> hit;
+    in property <string> tail;
+    in property <length> text-size;
+    in property <color> text-color;
+    in property <color> hit-color;
+    spacing: 0;
+    alignment: start;
+    min-width: 0px;
+
+    if root.lead != "": Text {
+        text: root.lead;
+        font-size: root.text-size;
+        font-weight: 400;
+        color: root.text-color;
+        vertical-alignment: center;
+    }
+    if root.hit != "": Text {
+        text: root.hit;
+        font-size: root.text-size;
+        font-weight: 400;
+        color: root.hit-color;
+        vertical-alignment: center;
+    }
+    Text {
+        text: root.tail;
+        font-size: root.text-size;
+        font-weight: 400;
+        color: root.text-color;
+        overflow: clip;
+        horizontal-stretch: 1;
+        min-width: 0px;
+        vertical-alignment: center;
+    }
+}
+
+component ResultRows inherits VerticalLayout {
+    in property <[Row]> rows;
+    in property <int> selected;
+    in property <bool> on-dark;
+    in property <bool> ledger;
+    in property <color> title-color;
+    in property <color> hit-color;
+    in property <color> detail-color;
+    in property <color> select-title;
+    in property <color> select-detail;
+    in property <color> select-bg;
+    in property <color> hover-bg;
+    in property <length> row-h: 48px;
+    in property <length> row-radius: 12px;
+    in property <bool> shortcut: false;
+    in property <length> row-gap: 2px;
+    in property <bool> gliding: false;
+    callback choose(int);
+    callback context-menu(int);
+    callback wheeled(length);
+
+    spacing: root.row-gap;
+
+    function key-label(index: int) -> string {
+        if (index == 0) { return "Ctrl+1"; }
+        if (index == 1) { return "Ctrl+2"; }
+        if (index == 2) { return "Ctrl+3"; }
+        if (index == 3) { return "Ctrl+4"; }
+        if (index == 4) { return "Ctrl+5"; }
+        if (index == 5) { return "Ctrl+6"; }
+        if (index == 6) { return "Ctrl+7"; }
+        if (index == 7) { return "Ctrl+8"; }
+        if (index == 8) { return "Ctrl+9"; }
+        return "";
+    }
+
+    for row[index] in root.rows: Rectangle {
+        width: 100%;
+        height: root.row-h;
+        border-radius: root.row-radius;
+        background: lifted ? root.select-bg : transparent;
+        property <bool> lifted: index == root.selected || (area.has-hover && !root.gliding);
+        property <length> title-size: root.shortcut ? 14px : root.ledger ? (lifted ? 18px : 14px) : (lifted ? 20px : 15px);
+        property <length> detail-size: lifted ? 15px : 12px;
+        animate background, title-size, detail-size { duration: root.gliding ? 0ms : 160ms; easing: ease-out; }
+
+        area := TouchArea {
+            width: 100%;
+            height: 100%;
+            mouse-cursor: pointer;
+            scroll-event(event) => {
+                root.wheeled(event.delta-y);
+                accept
+            }
+            clicked => {
+                root.choose(index);
+            }
+            pointer-event(event) => {
+                if event.button == PointerEventButton.right && event.kind == PointerEventKind.up {
+                    root.context-menu(index);
+                }
+            }
+        }
+
+        HorizontalLayout {
+            width: 100%;
+            height: 100%;
+            padding-left: 10px;
+            padding-right: 12px;
+            spacing: 10px;
+            alignment: start;
+
+            Rectangle {
+                width: 18px;
+                height: 100%;
+                KindMark {
+                    kind: row.kind;
+                    on-dark: root.on-dark;
+                    y: (parent.height - self.height) / 2;
+                }
+            }
+
+            if root.shortcut: NameLine {
+                horizontal-stretch: 1;
+                min-width: 0px;
+                lead: row.lead;
+                hit: row.hit;
+                tail: row.tail;
+                text-size: title-size;
+                text-color: lifted ? root.select-title : root.title-color;
+                hit-color: root.hit-color;
+            }
+
+            if root.shortcut && index < 9: Text {
+                text: root.key-label(index);
+                font-size: 12px;
+                color: root.detail-color;
+                vertical-alignment: center;
+            }
+
+            if !root.ledger && !root.shortcut: VerticalLayout {
+                horizontal-stretch: 1;
+                min-width: 0px;
+                alignment: center;
+                spacing: 1px;
+                NameLine {
+                    horizontal-stretch: 1;
+                    min-width: 0px;
+                    lead: row.lead;
+                    hit: row.hit;
+                    tail: row.tail;
+                    text-size: title-size;
+                    text-color: root.title-color;
+                    hit-color: root.hit-color;
+                }
+                Text {
+                    text: row.detail;
+                    font-size: detail-size;
+                    color: root.detail-color;
+                    overflow: elide;
+                    horizontal-stretch: 1;
+                    min-width: 0px;
+                }
+            }
+
+            if root.ledger && !root.shortcut: HorizontalLayout {
+                horizontal-stretch: 1;
+                min-width: 0px;
+                spacing: 12px;
+                alignment: start;
+                NameLine {
+                    min-width: 148px;
+                    max-width: 380px;
+                    lead: row.lead;
+                    hit: row.hit;
+                    tail: row.tail;
+                    text-size: title-size;
+                    text-color: root.title-color;
+                    hit-color: root.hit-color;
+                }
+                Text {
+                    text: row.detail;
+                    font-size: detail-size;
+                    color: root.detail-color;
+                    overflow: elide;
+                    horizontal-stretch: 1;
+                    min-width: 0px;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+component ResultScroller inherits Flickable {
+    in property <[Row]> rows;
+    in property <int> selected;
+    in property <bool> on-dark;
+    in property <bool> ledger;
+    in property <color> title-color;
+    in property <color> hit-color;
+    in property <color> detail-color;
+    in property <color> select-title;
+    in property <color> select-detail;
+    in property <color> select-bg;
+    in property <color> hover-bg;
+    in property <length> row-h: 48px;
+    in property <length> row-radius: 12px;
+    in property <bool> shortcut: false;
+    in property <int> limit: 8;
+    in property <float> fade: 1;
+    callback choose(int);
+    callback context-menu(int);
+    callback wheeled(length);
+
+    opacity: fade;
+    property <length> gap: root.shortcut ? 0px : 2px;
+    property <int> shown: min(root.rows.length, root.limit);
+    property <length> content: root.rows.length <= 0 ? 0px : root.rows.length * root.row-h + (root.rows.length - 1) * root.gap;
+    property <length> view: root.shown <= 0 ? 0px : root.shown * root.row-h + (root.shown - 1) * root.gap;
+    property <length> item-y: root.selected * (root.row-h + root.gap);
+    in-out property <length> scroll-y: 0;
+    in-out property <bool> from-wheel: false;
+    property <length> shown-y: 0px;
+    property <duration> glide-for: 0ms;
+    property <bool> gliding: root.shown-y != root.scroll-y;
+    animate shown-y { duration: root.glide-for; easing: ease-out; }
+
+    width: 100%;
+    height: root.view;
+    content-width: self.width;
+    content-height: self.height;
+    interactive: false;
+
+    changed scroll-y => {
+        if root.from-wheel {
+            root.glide-for = 160ms;
+            root.from-wheel = false;
+        } else {
+            root.glide-for = 0ms;
+        }
+        root.shown-y = root.scroll-y;
+    }
+
+    changed selected => {
+        root.reveal();
+    }
+
+    public function scroll-by(delta: length) {
+        if root.rows.length <= root.shown {
+            return;
+        }
+        root.from-wheel = true;
+        root.scroll-y = max(0px, min(root.scroll-y - delta, max(root.content - root.height, 0px)));
+    }
+
+    function reveal() {
+        root.from-wheel = false;
+        if root.rows.length == 0 {
+            root.scroll-y = 0px;
+            return;
+        }
+        if root.item-y < root.scroll-y {
+            root.scroll-y = root.item-y;
+        } else if root.item-y + root.row-h > root.scroll-y + root.height {
+            root.scroll-y = root.item-y + root.row-h - root.height;
+        }
+        root.scroll-y = max(0px, min(root.scroll-y, max(root.content - root.height, 0px)));
+    }
+
+    ResultRows {
+        y: -root.shown-y;
+        width: parent.width;
+        height: max(root.content, root.height);
+        rows: root.rows;
+        selected: root.selected;
+        on-dark: root.on-dark;
+        ledger: root.ledger;
+        title-color: root.title-color;
+        hit-color: root.hit-color;
+        detail-color: root.detail-color;
+        select-title: root.select-title;
+        select-detail: root.select-detail;
+        select-bg: root.select-bg;
+        hover-bg: root.hover-bg;
+        row-h: root.row-h;
+        row-radius: root.row-radius;
+        shortcut: root.shortcut;
+        row-gap: root.gap;
+        gliding: root.gliding;
+        choose(index) => {
+            root.choose(index);
+        }
+        context-menu(index) => {
+            root.context-menu(index);
+        }
+        wheeled(delta) => {
+            root.scroll-by(delta);
+        }
+    }
+}
+
+component IndexRing inherits Rectangle {
+    in property <color> mark;
+    in property <color> rest;
+    width: 14px;
+    height: 100%;
+    property <int> step: 0;
+    property <length> ox: 7px;
+    property <length> oy: (self.height - 14px) / 2 + 7px;
+
+    Timer {
+        interval: 90ms;
+        running: true;
+        triggered => {
+            root.step = Math.mod(root.step + 1, 8);
+        }
+    }
+
+    for tick[i] in 8: Rectangle {
+        width: 3px;
+        height: 3px;
+        border-radius: 1.5px;
+        x: root.ox + 4.5px * cos(i * 45deg - 90deg) - 1.5px;
+        y: root.oy + 4.5px * sin(i * 45deg - 90deg) - 1.5px;
+        background: i == root.step ? root.mark : root.rest;
+    }
+}
+
+component MenuItem inherits Rectangle {
+    in property <string> label;
+    in property <color> text-color;
+    in property <color> hover;
+    in property <length> radius;
+    callback clicked();
+    width: 176px;
+    height: 32px;
+    border-radius: radius;
+    background: area.has-hover ? hover : transparent;
+    animate background { duration: 120ms; easing: ease-out; }
+    area := TouchArea {
+        mouse-cursor: pointer;
+        scroll-event(event) => {
+            accept
+        }
+        clicked => {
+            root.clicked();
+        }
+    }
+    Text {
+        x: 12px;
+        y: (parent.height - self.height) / 2;
+        text: root.label;
+        font-size: 14px;
+        color: root.text-color;
+    }
+}
+
+component KeyCap inherits Rectangle {
+    in property <string> label;
+    in property <bool> solid: false;
+    in property <bool> on-dark: false;
+    width: cap-text.preferred-width + 12px;
+    height: 18px;
+    border-radius: 5px;
+    background: solid ? (on-dark ? #f4f0e6 : #172033) : (on-dark ? #f4f0e614 : #fffdf9);
+    border-width: solid ? 0px : 1px;
+    border-color: on-dark ? #f4f0e638 : #1720331c;
+    cap-text := Text {
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2;
+        text: root.label;
+        font-size: 11px;
+        color: solid ? (on-dark ? #172033 : #f4f0e6) : (on-dark ? #f4f0e6 : #172033);
+    }
+}
+
+component Guide inherits HorizontalLayout {
+    in property <string> key-a;
+    in property <string> key-b: "";
+    in property <string> action;
+    in property <bool> on-dark: false;
+    in property <color> word;
+    spacing: 6px;
+    HorizontalLayout {
+        spacing: 3px;
+        KeyCap { label: root.key-a; on-dark: root.on-dark; }
+        if root.key-b != "": KeyCap { label: root.key-b; on-dark: root.on-dark; }
+    }
+    Text {
+        text: root.action;
+        font-size: 12px;
+        color: root.word;
+        vertical-alignment: center;
+    }
+}
+
+component HintBar inherits HorizontalLayout {
+    in property <bool> on-dark: false;
+    in property <color> word;
+    in property <[string]> summon-keys;
+    in property <bool> summon-double: false;
+    spacing: 16px;
+    Guide { key-a: "Enter"; action: "打开"; on-dark: root.on-dark; word: root.word; }
+    Guide { key-a: "Ctrl"; key-b: "Enter"; action: "定位"; on-dark: root.on-dark; word: root.word; }
+    Guide { key-a: "Esc"; action: "关闭"; on-dark: root.on-dark; word: root.word; }
+    Rectangle { horizontal-stretch: 1; }
+    HorizontalLayout {
+        spacing: 5px;
+        if root.summon-double: Text {
+            text: "双击";
+            font-size: 12px;
+            color: root.word;
+            vertical-alignment: center;
+        }
+        HorizontalLayout {
+            spacing: 3px;
+            for key in root.summon-keys: KeyCap {
+                label: key;
+                solid: true;
+                on-dark: root.on-dark;
+            }
+        }
+    }
+}
+
+export component Launcher inherits Window {
+    title: "findthing";
+    preferred-width: win-w;
+    preferred-height: win-h;
+    no-frame: true;
+    always-on-top: true;
+    in property <bool> docked: false;
+    in property <bool> save-dialog: false;
+    background: transparent;
+    default-font-family: "Microsoft YaHei UI";
+    default-font-size: 14px;
+
+    in-out property <string> query;
+    out property <bool> input-focused: root.docked ? dock.has-focus : input.has-focus;
+    out property <string> composing: root.docked ? dock.preedit-text : input.preedit-text;
+    in property <[Row]> rows;
+    in-out property <int> selected: 0;
+    in-out property <int> slots: 0;
+    property <float> list-in: 0;
+    property <bool> list-motion: true;
+    animate list-in { duration: list-motion ? 160ms : 0ms; easing: ease-out; }
+    in property <string> status: "";
+    in property <[string]> summon-keys: ["Ctrl"];
+    in property <bool> summon-double: true;
+    in property <bool> index-done: false;
+    property <length> index-box: !index-done ? (query == "" && composing == "" ? 196px : 70px) : 0px;
+    property <length> index-pad: index-box == 0px ? 0px : index-box + 10px;
+    in property <bool> capturing: false;
+    in property <string> theme: "paper";
+
+    property <bool> dark: theme == "ink";
+    property <bool> hide-head: theme == "field" || theme == "split";
+    property <bool> logo-in-field: theme == "field" || theme == "split";
+    property <bool> split: theme == "split";
+    property <bool> ledger: theme == "ledger";
+    property <color> ink: #172033;
+    property <color> paper: #f4f0e6;
+    property <color> signal: #ef4e32;
+    property <color> cream: #fffdf9;
+    property <color> title-color: dark ? paper : ink;
+    property <color> detail-color: dark ? #f4f0e69e : #5c6578;
+    property <color> select-bg: dark ? #ef4e3328 : #f8e2da;
+    property <color> select-title: dark ? cream : ink;
+    property <color> select-detail: dark ? #fffdf9c6 : #5c6578;
+    property <color> hover-bg: dark ? #f4f0e614 : #1720330c;
+    property <color> placeholder: dark ? #f4f0e666 : #17203355;
+    property <color> search-line: dark ? #f4f0e61f : #17203314;
+    property <length> search-h: split ? 54px : (ledger ? 40px : 48px);
+    property <length> search-radius: split ? 18px : (ledger ? 10px : 16px);
+    property <length> field-x: logo-in-field ? 44px : 16px;
+    property <length> row-h: ledger ? 36px : 48px;
+    property <length> row-radius: ledger ? 8px : 12px;
+    property <int> shown: min(rows.length, docked ? 9 : 8);
+    in-out property <int> dock-from: 0;
+    property <int> dock-page: root.save-dialog && root.slots > 0 ? root.slots : 9;
+    property <bool> unmatched: index-done && rows.length == 0 && (query != "" || composing != "");
+    property <length> miss-h: !unmatched ? 0px : docked ? 22px : ledger ? 26px : split ? 28px : 30px;
+    in-out property <length> dock-w: 572px;
+    out property <length> win-w: docked ? dock-w : (split ? 588px : 640px);
+    property <length> target-h: (docked ? (save-dialog ? (40px + slots * 32px) : (74px + slots * 32px)) : theme == "field" ? (slots == 0 ? 116px : 164px + slots * 50px) : theme == "split" ? (slots == 0 ? 90px : 148px + slots * 50px) : theme == "ledger" ? (slots == 0 ? 126px : 164px + slots * 38px) : (slots == 0 ? 156px : 204px + slots * 50px)) + miss-h;
+    property <length> body-h: target-h;
+    animate body-h { duration: motion ? 160ms : 0ms; easing: ease-out; }
+    out property <length> win-h: body-h;
+    in-out property <bool> motion: true;
+    in-out property <float> reveal: 0;
+    in-out property <bool> closing: false;
+    animate reveal { duration: 150ms; easing: ease-out; }
+    in-out property <bool> menu-open: false;
+    in-out property <bool> menu-closing: false;
+    in-out property <bool> menu-command: false;
+    in-out property <float> menu-show: 0;
+    in-out property <float> menu-x: 0;
+    in-out property <float> menu-y: 0;
+    property <bool> menu-motion: true;
+    animate menu-show { duration: menu-motion ? 150ms : 0ms; easing: ease-out; }
+    callback menu-pick(int);
+
+    callback query-changed(string);
+    callback submitted(int, bool);
+    callback dismissed();
+    callback nudge(int);
+    callback jump(int);
+    callback tick();
+    property <bool> dragging: false;
+    callback begin-drag();
+    callback drag-move();
+    callback end-drag();
+
+    function start-drag() {
+        dragging = true;
+        begin-drag();
+    }
+
+    function stop-drag() {
+        dragging = false;
+        end-drag();
+    }
+    callback focus-check();
+    callback nudge-save();
+    callback context-menu(int);
+    callback vanished();
+    callback sized();
+
+    public function reveal-row() {
+        if !root.docked {
+            return;
+        }
+        if root.rows.length <= root.dock-page {
+            root.dock-from = 0;
+            return;
+        }
+        if root.selected < root.dock-from {
+            root.dock-from = root.selected;
+        } else if root.selected >= root.dock-from + root.dock-page {
+            root.dock-from = root.selected + 1 - root.dock-page;
+        }
+        if root.dock-from < 0 {
+            root.dock-from = 0;
+        }
+        if root.dock-from > root.rows.length - root.dock-page {
+            root.dock-from = root.rows.length - root.dock-page;
+        }
+    }
+
+    changed selected => {
+        root.reveal-row();
+    }
+
+    in-out property <length> list-scroll: 0;
+    in-out property <bool> list-wheel: false;
+    property <length> list-span: root.rows.length <= 8 ? 0px : (root.rows.length - 8) * (root.row-h + 2px);
+
+    public function scroll-results(delta: length) {
+        if root.docked {
+            root.wheel(delta);
+            return;
+        }
+        root.list-wheel = true;
+        root.list-scroll = max(0px, min(root.list-scroll - delta, root.list-span));
+    }
+
+    public function wheel(delta: length) {
+        if root.rows.length == 0 {
+            return;
+        }
+        if delta < 0px {
+            root.nudge(1);
+        } else if delta > 0px {
+            root.nudge(-1);
+        }
+    }
+
+    public function reset() {
+        menu-motion = false;
+        menu-open = false;
+        menu-closing = false;
+        menu-show = 0;
+        menu-motion = true;
+        query = "";
+        selected = 0;
+        if root.docked {
+            dock.focus();
+        } else {
+            input.focus();
+        }
+    }
+
+    public function open-menu() {
+        menu-closing = false;
+        menu-open = true;
+        menu-show = 1;
+    }
+
+    public function close-menu() {
+        menu-closing = true;
+        menu-show = 0;
+    }
+
+    public function play-in() {
+        closing = false;
+        reveal = 1;
+    }
+
+    public function play-out() {
+        if closing {
+            return;
+        }
+        closing = true;
+        reveal = 0;
+        close-menu();
+    }
+
+    changed reveal => {
+        if closing && reveal <= 0 {
+            vanished();
+        }
+    }
+
+    changed menu-show => {
+        if menu-closing && menu-show <= 0 {
+            menu-open = false;
+            menu-closing = false;
+        }
+    }
+
+    changed win-h => {
+        sized();
+    }
+
+    changed slots => {
+        if root.slots == 0 {
+            root.list-motion = false;
+            root.list-in = 0;
+        } else if root.list-in < 1 {
+            root.list-motion = true;
+            root.list-in = 1;
+        }
+    }
+
+    public function take-focus() {
+        if root.docked {
+            if !dock.has-focus {
+                dock.focus();
+            }
+        } else if !input.has-focus {
+            input.focus();
+        }
+    }
+
+    // Showing the window again leaves Slint thinking the field is already
+    // focused, so Windows never attaches the input method. Cycle it unless a
+    // composition is already on screen.
+    public function arm-input() {
+        if root.docked {
+            if dock.preedit-text != "" {
+                return;
+            }
+            dock.clear-focus();
+            dock.focus();
+            return;
+        }
+        if input.preedit-text != "" {
+            return;
+        }
+        input.clear-focus();
+        input.focus();
+    }
+
+    public function place-caret(offset: int) {
+        if root.docked {
+            dock.set-selection-offsets(offset, offset);
+        }
+    }
+
+    // A lost focus item stays "current" inside Slint, so a later click does not
+    // turn the input method back on. Drop it first, then focus again.
+    public function wake-input() {
+        if root.docked {
+            if dock.preedit-text != "" || dock.has-focus {
+                return;
+            }
+            dock.clear-focus();
+            dock.focus();
+            return;
+        }
+        if input.preedit-text != "" || input.has-focus {
+            return;
+        }
+        input.clear-focus();
+        input.focus();
+    }
+
+    changed query => {
+        if root.menu-open {
+            root.close-menu();
+        }
+        root.query-changed(root.query + (root.docked ? dock.preedit-text : input.preedit-text));
+    }
+
+    Timer {
+        interval: 1s;
+        running: !root.index-done;
+        triggered => {
+            root.tick();
+        }
+    }
+
+    Timer {
+        interval: 80ms;
+        running: true;
+        triggered => {
+            root.focus-check();
+        }
+    }
+
+    Timer {
+        interval: 16ms;
+        running: root.docked && root.save-dialog;
+        triggered => {
+            root.nudge-save();
+        }
+    }
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+
+        Rectangle {
+            x: root.docked ? -4000px : 14px;
+            y: 10px + (1 - root.reveal) * 8px;
+            opacity: root.reveal;
+            width: parent.width - 28px;
+            height: root.docked ? 0px : parent.height - 24px;
+            border-radius: root.ledger ? 16px : (root.split ? 0px : 22px);
+            clip: !root.split;
+            background: root.split ? transparent : (root.dark ? root.ink : root.paper);
+            border-width: root.split ? 0px : 1px;
+            border-color: root.dark ? #f4f0e614 : #17203312;
+            animate background, border-color { duration: 200ms; easing: ease-out; }
+            drop-shadow-blur: root.split ? 0px : 22px;
+            drop-shadow-color: #17203328;
+            drop-shadow-offset-y: root.split ? 0px : 8px;
+
+        TouchArea {
+            width: 100%;
+            height: 100%;
+            mouse-cursor: root.dragging ? grabbing : grab;
+            scroll-event(event) => {
+                root.scroll-results(event.delta-y);
+                accept
+            }
+            pointer-event(event) => {
+                if event.button == PointerEventButton.left && event.kind == PointerEventKind.down {
+                    root.start-drag();
+                } else if event.button == PointerEventButton.left && (event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel) {
+                    root.stop-drag();
+                }
+            }
+            moved => {
+                root.drag-move();
+            }
+
+        VerticalLayout {
+            width: 100%;
+            height: 100%;
+            padding: root.split ? 0px : (root.ledger ? 12px : 18px);
+            spacing: root.ledger ? 8px : (root.split ? 10px : 12px);
+
+            if !root.hide-head: TouchArea {
+                height: root.ledger ? 22px : 28px;
+                mouse-cursor: root.dragging ? grabbing : grab;
+                scroll-event(event) => {
+                    root.scroll-results(event.delta-y);
+                    accept
+                }
+                pointer-event(event) => {
+                    if event.button == PointerEventButton.left && event.kind == PointerEventKind.down {
+                        root.start-drag();
+                    } else if event.button == PointerEventButton.left && (event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel) {
+                        root.stop-drag();
+                    }
+                }
+                moved => {
+                    root.drag-move();
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: center;
+                    Mark { width: root.ledger ? 20px : 26px; height: root.ledger ? 20px : 26px; }
+                    HorizontalLayout {
+                        spacing: 0;
+                        alignment: center;
+                        Text {
+                            text: "find";
+                            font-size: root.ledger ? 15px : 18px;
+                            font-weight: 600;
+                            color: root.title-color;
+                        }
+                        Text {
+                            text: "thing";
+                            font-size: root.ledger ? 15px : 18px;
+                            font-weight: 600;
+                            color: root.signal;
+                        }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    if root.status != "": Text {
+                        text: root.status;
+                        font-size: 12px;
+                        color: root.detail-color;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            Rectangle {
+                height: root.search-h;
+                border-radius: root.search-radius;
+                background: root.split ? root.paper : (root.dark ? #f4f0e610 : root.cream);
+                border-width: root.split ? 0px : 1.5px;
+                border-color: input.has-focus ? root.signal : root.search-line;
+                animate background, border-color { duration: 200ms; easing: ease-out; }
+                drop-shadow-blur: root.split ? 16px : 0px;
+                drop-shadow-color: #17203328;
+                drop-shadow-offset-y: root.split ? 6px : 0px;
+
+                TouchArea {
+                    width: 100%;
+                    height: 100%;
+                    mouse-cursor: root.dragging ? grabbing : text;
+                    pointer-event(event) => {
+                        if event.button == PointerEventButton.left && event.kind == PointerEventKind.down {
+                            root.wake-input();
+                        }
+                    }
+                }
+
+                if root.logo-in-field: TouchArea {
+                    x: 12px;
+                    y: (parent.height - 22px) / 2;
+                    width: 22px;
+                    height: 22px;
+                    mouse-cursor: root.dragging ? grabbing : grab;
+                    Mark { width: 22px; height: 22px; }
+                    pointer-event(event) => {
+                        if event.button == PointerEventButton.left && event.kind == PointerEventKind.down {
+                            root.start-drag();
+                        } else if event.button == PointerEventButton.left && (event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel) {
+                            root.stop-drag();
+                        }
+                    }
+                    moved => {
+                        root.drag-move();
+                    }
+                }
+
+                if root.query == "" && input.preedit-text == "" && (root.index-done || root.capturing): Text {
+                    x: root.field-x;
+                    y: (parent.height - self.height) / 2;
+                    text: root.capturing ? "按下新的呼出快捷键" : "搜索文件名，或输入命令";
+                    color: root.placeholder;
+                    font-size: root.ledger ? 15px : 16px;
+                }
+
+                input := TextInput {
+                    x: root.field-x;
+                    width: parent.width - root.field-x - 16px - root.index-pad;
+                    height: parent.height;
+                    single-line: true;
+                    vertical-alignment: center;
+                    font-size: root.ledger ? 15px : 16px;
+                    color: root.split ? root.ink : root.title-color;
+                    text <=> root.query;
+                    changed preedit-text => {
+                        root.query-changed(root.query + self.preedit-text);
+                    }
+
+                    key-pressed(event) => {
+                        if root.menu-open && event.text == Key.Escape {
+                            root.close-menu();
+                            accept
+                        } else if event.text == Key.UpArrow {
+                            if root.menu-open { root.close-menu(); }
+                            root.nudge(-1);
+                            accept
+                        } else if event.text == Key.DownArrow {
+                            if root.menu-open { root.close-menu(); }
+                            root.nudge(1);
+                            accept
+                        } else if event.text == Key.Escape {
+                            root.dismissed();
+                            accept
+                        } else if event.text == Key.Return && self.preedit-text == "" {
+                            if root.menu-open { root.close-menu(); }
+                            root.submitted(root.selected, event.modifiers.control);
+                            accept
+                        } else {
+                            reject
+                        }
+                    }
+                }
+
+                if !root.index-done: HorizontalLayout {
+                    x: parent.width - root.index-box - 12px;
+                    y: 0;
+                    width: root.index-box;
+                    height: 100%;
+                    spacing: 6px;
+                    alignment: end;
+                    IndexRing {
+                        mark: root.signal;
+                        rest: root.dark ? #f4f0e655 : #17203329;
+                    }
+                    Text {
+                        text: root.query == "" && root.composing == "" ? "正在更新索引，搜索会稍慢" : "更新中";
+                        font-size: 12px;
+                        color: root.detail-color;
+                        vertical-alignment: center;
+                    }
+                }
+
+                TouchArea {
+                    x: root.field-x;
+                    width: parent.width - root.field-x - 16px - root.index-pad;
+                    height: parent.height;
+                    enabled: !input.has-focus;
+                    mouse-cursor: root.dragging ? grabbing : text;
+                    pointer-event(event) => {
+                        if event.button == PointerEventButton.left && event.kind == PointerEventKind.down {
+                            root.wake-input();
+                        }
+                    }
+                }
+            }
+
+            if !root.docked && root.unmatched: Text {
+                horizontal-stretch: 1;
+                height: 16px;
+                text: "没有匹配的文件";
+                font-size: 12px;
+                color: root.placeholder;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+
+            if root.split && root.rows.length > 0: Rectangle {
+                border-radius: 18px;
+                background: root.paper;
+                drop-shadow-blur: 16px;
+                drop-shadow-color: #17203324;
+                drop-shadow-offset-y: 6px;
+
+                VerticalLayout {
+                    padding: 8px;
+                    spacing: 4px;
+                    ResultScroller {
+                        rows: root.rows;
+                        selected: root.selected;
+                        on-dark: false;
+                        ledger: false;
+                        title-color: root.ink;
+                        hit-color: root.signal;
+                        detail-color: #5c6578;
+                        select-title: root.ink;
+                        select-detail: #5c6578;
+                        select-bg: #f8e2da;
+                        hover-bg: #1720330c;
+                        scroll-y <=> root.list-scroll;
+                        from-wheel <=> root.list-wheel;
+                        fade: root.list-in;
+                        choose(index) => {
+                            root.selected = index;
+                            root.submitted(index, false);
+                        }
+                        context-menu(index) => {
+                            root.selected = index;
+                            root.context-menu(index);
+                        }
+                        wheeled(delta) => {
+                            root.scroll-results(delta);
+                        }
+                    }
+                    HintBar {
+                        on-dark: false;
+                        word: #5c6578;
+                        summon-keys: root.summon-keys;
+                        summon-double: root.summon-double;
+                    }
+                }
+            }
+
+            if !root.split && root.rows.length > 0: ResultScroller {
+                rows: root.rows;
+                selected: root.selected;
+                on-dark: root.dark;
+                ledger: root.ledger;
+                title-color: root.title-color;
+                hit-color: root.signal;
+                detail-color: root.detail-color;
+                select-title: root.select-title;
+                select-detail: root.select-detail;
+                select-bg: root.select-bg;
+                hover-bg: root.hover-bg;
+                row-h: root.row-h;
+                row-radius: root.row-radius;
+                scroll-y <=> root.list-scroll;
+                from-wheel <=> root.list-wheel;
+                fade: root.list-in;
+                choose(index) => {
+                    root.selected = index;
+                    root.submitted(index, false);
+                }
+                context-menu(index) => {
+                    root.selected = index;
+                    root.context-menu(index);
+                }
+                wheeled(delta) => {
+                    root.scroll-results(delta);
+                }
+            }
+
+            if !root.split && root.rows.length > 0: HintBar {
+                on-dark: root.dark;
+                word: root.detail-color;
+                summon-keys: root.summon-keys;
+                summon-double: root.summon-double;
+            }
+        }
+        }
+
+        TouchArea {
+            width: 100%;
+            height: 100%;
+            enabled: root.menu-open;
+            scroll-event(event) => {
+                accept
+            }
+            pointer-event(event) => {
+                if event.kind == PointerEventKind.down {
+                    root.close-menu();
+                }
+            }
+        }
+
+        Rectangle {
+            property <length> anchor-x: root.menu-x * 1px - 14px;
+            property <length> anchor-y: root.menu-y * 1px - 10px - (1 - root.reveal) * 8px;
+            property <length> item-radius: max(root.search-radius - 6px, 6px);
+            property <length> place-y: anchor-y + self.height > parent.height - 8px ? max(anchor-y - self.height, 8px) : anchor-y;
+            x: min(max(anchor-x, 8px), parent.width - self.width - 8px);
+            y: min(max(place-y, 8px), parent.height - self.height - 8px) + (1 - root.menu-show) * 6px;
+            width: 188px;
+            height: root.menu-command ? 80px : 304px;
+            visible: root.menu-open || root.menu-show > 0.01;
+            opacity: root.menu-show;
+            border-radius: root.search-radius;
+            background: root.split ? root.paper : (root.dark ? #243044 : root.cream);
+            border-width: root.split ? 0px : 1.5px;
+            border-color: root.dark ? #f4f0e666 : #17203338;
+            drop-shadow-blur: 16px;
+            drop-shadow-color: #17203328;
+            drop-shadow-offset-y: 6px;
+
+            TouchArea {
+                width: 100%;
+                height: 100%;
+                scroll-event(event) => {
+                    accept
+                }
+            }
+
+            VerticalLayout {
+                padding: 6px;
+                spacing: 2px;
+                if root.menu-command: VerticalLayout {
+                    spacing: 2px;
+                    MenuItem {
+                        label: "运行";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(1); }
+                    }
+                    MenuItem {
+                        label: "复制名称";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(6); }
+                    }
+                }
+                if !root.menu-command: VerticalLayout {
+                    spacing: 2px;
+                    MenuItem {
+                        label: "打开";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(1); }
+                    }
+                    MenuItem {
+                        label: "打开所在文件夹";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(2); }
+                    }
+                    Rectangle {
+                        height: 9px;
+                        Rectangle { y: 4px; x: 8px; width: parent.width - 16px; height: 1px; background: root.search-line; }
+                    }
+                    MenuItem {
+                        label: "复制";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(3); }
+                    }
+                    MenuItem {
+                        label: "剪切";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(4); }
+                    }
+                    MenuItem {
+                        label: "复制路径";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(5); }
+                    }
+                    MenuItem {
+                        label: "复制文件名";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(6); }
+                    }
+                    Rectangle {
+                        height: 9px;
+                        Rectangle { y: 4px; x: 8px; width: parent.width - 16px; height: 1px; background: root.search-line; }
+                    }
+                    MenuItem {
+                        label: "移动到…";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(7); }
+                    }
+                    MenuItem {
+                        label: "删除";
+                        text-color: root.title-color;
+                        hover: root.select-bg;
+                        radius: item-radius;
+                        clicked => { root.close-menu(); root.menu-pick(8); }
+                    }
+                }
+            }
+        }
+        }
+    }
+
+    Rectangle {
+        x: root.docked ? (root.save-dialog ? 0px : 14px) : -4000px;
+        y: (root.save-dialog ? 0px : 10px) + (root.save-dialog ? 0px : (1 - root.reveal) * 8px);
+        opacity: root.save-dialog ? 1 : root.reveal;
+        width: root.save-dialog ? parent.width : parent.width - 28px;
+        height: root.docked ? (root.save-dialog ? parent.height : parent.height - 24px) : 0px;
+        border-radius: root.save-dialog ? 16px : (root.ledger ? 16px : (root.split ? 0px : 22px));
+        clip: !root.split;
+        background: root.save-dialog ? (root.dark ? root.ink : #f7f7f7) : (root.split ? transparent : (root.dark ? root.ink : root.paper));
+        border-width: root.save-dialog ? 0px : (root.split ? 0px : 1px);
+        border-color: root.dark ? #f4f0e614 : #17203312;
+        drop-shadow-blur: root.save-dialog || root.split ? 0px : 22px;
+        drop-shadow-color: #17203328;
+        drop-shadow-offset-y: root.save-dialog || root.split ? 0px : 8px;
+
+    for row[index] in root.rows: Rectangle {
+        property <bool> on-page: index >= root.dock-from && index < root.dock-from + root.dock-page;
+        x: on-page ? 4px : -4000px;
+        y: (root.save-dialog ? 40px : 4px) + (index - root.dock-from) * 32px;
+        width: parent.width - 24px;
+        height: 32px;
+        border-radius: root.row-radius;
+        background: index == root.selected ? #d6e4f5 : (root.save-dialog ? (root.dark ? root.ink : #fffdf9) : transparent);
+        animate background { duration: 160ms; easing: ease-out; }
+
+        TouchArea {
+            width: parent.width;
+            height: 32px;
+            scroll-event(event) => {
+                root.wheel(event.delta-y);
+                accept
+            }
+            changed has-hover => {
+                if self.has-hover && root.selected != index {
+                    root.selected = index;
+                    root.jump(index);
+                }
+            }
+            clicked => {
+                root.selected = index;
+                if root.save-dialog {
+                    root.submitted(index, false);
+                } else {
+                    root.jump(index);
+                }
+            }
+            pointer-event(event) => {
+                if event.button == PointerEventButton.right && event.kind == PointerEventKind.up {
+                    root.selected = index;
+                    root.context-menu(index);
+                }
+            }
+        }
+
+        KindMark {
+            x: 8px;
+            y: 7px;
+            kind: row.kind;
+        }
+
+        if !root.save-dialog: Text {
+            x: 34px;
+            y: 6px;
+            width: parent.width - 130px;
+            height: 20px;
+            text: row.lead + row.hit + row.tail;
+            font-size: 14px;
+            color: root.title-color;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+
+        if !root.save-dialog: Rectangle {
+            x: parent.width - 90px;
+            y: 0px;
+            width: 82px;
+            height: 32px;
+            background: index == root.selected ? #d6e4f5 : transparent;
+        }
+
+        if !root.save-dialog: Text {
+            x: parent.width - 90px;
+            y: 8px;
+            width: 82px;
+            height: 16px;
+            text: row.detail;
+            font-size: 12px;
+            color: root.detail-color;
+            horizontal-alignment: right;
+            overflow: elide;
+        }
+
+        if root.save-dialog: Text {
+            x: 32px;
+            y: 6px;
+            width: 220px;
+            height: 20px;
+            text: row.lead + row.hit + row.tail;
+            font-size: 14px;
+            color: root.title-color;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+
+        if root.save-dialog: Text {
+            x: 260px;
+            y: 7px;
+            width: parent.width - 276px;
+            height: 18px;
+            text: row.detail;
+            font-size: 13px;
+            color: root.title-color;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+
+    Rectangle {
+        x: root.rows.length > root.dock-page ? parent.width - 16px : -4000px;
+        y: root.save-dialog ? 40px : 6px;
+        width: 4px;
+        height: root.slots * 32px - 4px;
+        border-radius: 2px;
+        background: root.dark ? #f4f0e633 : #17203314;
+
+        Rectangle {
+            y: (parent.height - self.height) * root.dock-from / max(root.rows.length - root.dock-page, 1);
+            width: 4px;
+            height: max(parent.height * root.dock-page / max(root.rows.length, 1), 18px);
+            border-radius: 2px;
+            background: root.dark ? #f4f0e688 : #17203355;
+        }
+    }
+
+    if root.unmatched: Text {
+        x: 8px;
+        y: parent.height - 58px;
+        width: parent.width - 16px;
+        height: 16px;
+        text: "没有匹配的文件";
+        font-size: 12px;
+        color: root.placeholder;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    Rectangle {
+        x: root.save-dialog ? 16px : 4px;
+        y: root.save-dialog ? 4px : parent.height - 36px;
+        width: root.save-dialog ? parent.width - 32px : parent.width - 24px;
+        height: 32px;
+        background: root.dark ? #f4f0e610 : #fffdf9;
+        border-width: 1.5px;
+        border-color: dock.has-focus ? root.signal : root.search-line;
+        border-radius: root.save-dialog ? 8px : root.search-radius;
+        animate background, border-color { duration: 200ms; easing: ease-out; }
+
+        dock := TextInput {
+            x: 10px;
+            y: 2px;
+            width: parent.width - 96px;
+            height: 28px;
+            single-line: true;
+            vertical-alignment: center;
+            font-size: 14px;
+            color: root.title-color;
+            text <=> root.query;
+            changed preedit-text => {
+                root.query-changed(root.query + self.preedit-text);
+            }
+            key-pressed(event) => {
+            if event.modifiers.control && event.text == "1" {
+                root.jump(0);
+                root.submitted(0, false);
+                accept
+            } else if event.modifiers.control && event.text == "2" {
+                root.jump(1);
+                root.submitted(1, false);
+                accept
+            } else if event.modifiers.control && event.text == "3" {
+                root.jump(2);
+                root.submitted(2, false);
+                accept
+            } else if event.modifiers.control && event.text == "4" {
+                root.jump(3);
+                root.submitted(3, false);
+                accept
+            } else if event.modifiers.control && event.text == "5" {
+                root.jump(4);
+                root.submitted(4, false);
+                accept
+            } else if event.modifiers.control && event.text == "6" {
+                root.jump(5);
+                root.submitted(5, false);
+                accept
+            } else if event.modifiers.control && event.text == "7" {
+                root.jump(6);
+                root.submitted(6, false);
+                accept
+            } else if event.modifiers.control && event.text == "8" {
+                root.jump(7);
+                root.submitted(7, false);
+                accept
+            } else if event.modifiers.control && event.text == "9" {
+                root.jump(8);
+                root.submitted(8, false);
+                accept
+            } else if event.text == Key.UpArrow {
+                root.nudge(-1);
+                accept
+            } else if event.text == Key.DownArrow {
+                root.nudge(1);
+                accept
+            } else if event.text == Key.Escape {
+                root.dismissed();
+                accept
+            } else if event.text == Key.Return && self.preedit-text == "" {
+                root.submitted(root.selected, event.modifiers.control);
+                accept
+            } else {
+                reject
+            }
+            }
+        }
+
+        Text {
+            x: parent.width - 72px;
+            y: 17px;
+            text: "find";
+            font-size: 10px;
+            font-weight: 600;
+            color: root.dark ? #f4f0e6c4 : #172033c4;
+        }
+
+        Text {
+            x: parent.width - 50px;
+            y: 17px;
+            text: "thing";
+            font-size: 10px;
+            font-weight: 600;
+            color: #ef4e32;
+        }
+    }
+
+    }
+}
+

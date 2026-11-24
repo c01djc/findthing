@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>findthing 同机测试</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --signal: #ef4e32;
+      --paper: #f4f0e6;
+      --cream: #fffdf9;
+      --muted: #5c6578;
+      --line: rgba(23, 32, 51, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      color: var(--ink);
+      background: #e7e1d4;
+      font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+    a { color: inherit; }
+    .page { width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 72px; }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { display: flex; align-items: baseline; gap: 0; text-decoration: none; }
+    .word { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -0.045em; line-height: 1; }
+    .word b { color: var(--signal); font-weight: 650; }
+    .nav a.back { color: var(--muted); font-size: 14px; text-decoration: none; }
+    h1 { margin: 48px 0 0; font-size: clamp(32px, 4vw, 44px); font-weight: 650; letter-spacing: -0.04em; line-height: 1.15; }
+    .lede { max-width: 42em; margin: 14px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    h2 { margin: 48px 0 8px; font-size: 24px; font-weight: 650; letter-spacing: -0.03em; }
+    .note { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .specs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 22px; }
+    .spec { padding: 14px 16px; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; }
+    .spec b { display: block; font-size: 15px; }
+    .spec span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .wrap { overflow-x: auto; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.45; }
+    th, td { padding: 12px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 650; font-size: 12px; }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .name { font-weight: 650; }
+    .sub { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; font-weight: 400; }
+    .bars { margin-top: 14px; padding: 8px 18px 16px; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; }
+    .row { display: grid; grid-template-columns: 148px 1fr 88px; gap: 12px; align-items: center; margin-top: 12px; }
+    .row span { font-size: 14px; }
+    .track { height: 10px; border-radius: 999px; background: rgba(23, 32, 51, 0.08); }
+    .fill { height: 10px; border-radius: 999px; background: var(--ink); }
+    .fill.us { background: var(--signal); }
+    .row em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+    ul { margin: 8px 0 0; padding-left: 1.2em; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    @media (max-width: 800px) {
+      .specs { grid-template-columns: 1fr 1fr; }
+      .row { grid-template-columns: 1fr; gap: 4px; }
+      .row em { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="nav">
+      <a class="brand" href="index.html"><p class="word">find<b>thing</b></p></a>
+      <a class="back" href="index.html">返回宣传页</a>
+    </nav>
+
+    <h1>同一台电脑上的测试</h1>
+    <p class="lede">2026 年 11 月 11 日，在正在使用的这台电脑上，对 findthing 和另外两款文件搜索软件各做了一次建索引，并用同一批词测了搜索。下面是测到的数字。</p>
+
+    <div class="specs">
+      <div class="spec"><b>Intel Core i7-12700</b><span>12 核 20 线程</span></div>
+      <div class="spec"><b>64 GB</b><span>内存</span></div>
+      <div class="spec"><b>Maxsun 1TB SSD</b><span>系统盘</span></div>
+      <div class="spec"><b>Windows 11</b><span>索引了 C、D、E、F、G</span></div>
+    </div>
+
+    <h2>建索引</h2>
+    <p class="note">从开始扫盘到索引可用的时间。三次都是清空或挪开旧库之后重做的。findthing 的索引线程优先级低于普通，6.8 秒是墙上时间，写完索引文件时进程已经用了 6.4 秒 CPU。</p>
+    <div class="bars" aria-label="建索引用时">
+      <div class="row"><span>findthing</span><div class="track"><div class="fill us" style="width:45%"></div></div><em>6.8 秒</em></div>
+      <div class="row"><span>对照 A</span><div class="track"><div class="fill" style="width:100%"></div></div><em>15.0 秒</em></div>
+      <div class="row"><span>对照 B</span><div class="track"><div class="fill" style="width:97%"></div></div><em>14.6 秒</em></div>
+    </div>
+    <div class="wrap" style="margin-top:14px">
+      <table>
+        <thead>
+          <tr>
+            <th>程序</th>
+            <th class="num">索引就绪</th>
+            <th class="num">条目</th>
+            <th class="num">建完后主进程</th>
+            <th class="num">索引文件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">findthing<span class="sub">五块盘。不收录磁盘根目录下的 Windows、回收站、系统卷信息，也不收录 WinSxS、node_modules、.git 里面的内容</span></td>
+            <td class="num">6.8 秒<span class="sub">CPU 6.4 秒</span></td>
+            <td class="num">1,942,718</td>
+            <td class="num">124 MB<span class="sub">写完那一刻 141 MB，私有内存 142 MB</span></td>
+            <td class="num">75 MB</td>
+          </tr>
+          <tr>
+            <td class="name">对照 A<span class="sub">它自己的建库计时是 15.025 秒。449,699 个文件夹，1,988,834 个文件</span></td>
+            <td class="num">15.0 秒</td>
+            <td class="num">2,438,533</td>
+            <td class="num">241 MB<span class="sub">服务另占约 12 MB</span></td>
+            <td class="num">77 MB</td>
+          </tr>
+          <tr>
+            <td class="name">对照 B<span class="sub">五块盘都就绪 14.6 秒，快照写回磁盘 19.0 秒。C 1,634,172，D 105,495，E 148,126，F 327,259，G 223,369</span></td>
+            <td class="num">14.6 秒<span class="sub">写回磁盘 19.0 秒</span></td>
+            <td class="num">2,438,421</td>
+            <td class="num">220 MB<span class="sub">服务和两个钩子进程另占约 26 MB</span></td>
+            <td class="num">111 MB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>搜索</h2>
+    <p class="note">每个词先查一次预热，再连续查 31 次，取中位时间。findthing 量的是程序内部排出前 80 条的时间，窗口还没画；单字母会在前 80 条排好后停。对照 A 走它自己的查询接口，每次都把匹配总数点清，再带回最多 80 条。对照 B 走本机接口，每次带回最多 80 条，并带上路径、大小和修改时间。没有结果的 zzzzqqqq，对照 A 也要 4.1 毫秒，对照 B 要 7.9 毫秒，这两列里各有一截固定开销。</p>
+    <div class="wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>词</th>
+            <th class="num">findthing<br />前 80 条</th>
+            <th class="num">findthing<br />全部点清</th>
+            <th class="num">对照 A</th>
+            <th class="num">对照 B</th>
+            <th class="num">findthing<br />命中</th>
+            <th class="num">对照 A<br />命中</th>
+            <th class="num">对照 B<br />命中</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="name">a</td>
+            <td class="num">1.5 毫秒</td>
+            <td class="num">22 毫秒</td>
+            <td class="num">11.0 毫秒</td>
+            <td class="num">84.9 毫秒</td>
+            <td class="num">1,225,162</td>
+            <td class="num">1,532,097</td>
+            <td class="num">1,532,435</td>
+          </tr>
+          <tr>
+            <td class="name">n</td>
+            <td class="num">0.29 毫秒</td>
+            <td class="num">20 毫秒</td>
+            <td class="num">9.4 毫秒</td>
+            <td class="num">74.2 毫秒</td>
+            <td class="num">1,055,347</td>
+            <td class="num">1,343,058</td>
+            <td class="num">1,343,355</td>
+          </tr>
+          <tr>
+            <td class="name">note</td>
+            <td class="num">4.2 毫秒</td>
+            <td class="num">21 毫秒</td>
+            <td class="num">5.2 毫秒</td>
+            <td class="num">11.0 毫秒</td>
+            <td class="num">1,661</td>
+            <td class="num">1,912</td>
+            <td class="num">1,912</td>
+          </tr>
+          <tr>
+            <td class="name">notepad</td>
+            <td class="num">13.8 毫秒</td>
+            <td class="num">10 毫秒</td>
+            <td class="num">4.9 毫秒</td>
+            <td class="num">9.1 毫秒</td>
+            <td class="num">60</td>
+            <td class="num">180</td>
+            <td class="num">180</td>
+          </tr>
+          <tr>
+            <td class="name">chrome</td>
+            <td class="num">5.8 毫秒</td>
+            <td class="num">8.4 毫秒</td>
+            <td class="num">5.1 毫秒</td>
+            <td class="num">9.8 毫秒</td>
+            <td class="num">1,598</td>
+            <td class="num">1,833</td>
+            <td class="num">1,833</td>
+          </tr>
+          <tr>
+            <td class="name">findthing</td>
+            <td class="num">5.3 毫秒</td>
+            <td class="num">3.5 毫秒</td>
+            <td class="num">4.5 毫秒</td>
+            <td class="num">8.8 毫秒</td>
+            <td class="num">355</td>
+            <td class="num">186</td>
+            <td class="num">186</td>
+          </tr>
+          <tr>
+            <td class="name">微信</td>
+            <td class="num">0.02 毫秒</td>
+            <td class="num">0.002 毫秒</td>
+            <td class="num">8.1 毫秒</td>
+            <td class="num">6.6 毫秒</td>
+            <td class="num">53</td>
+            <td class="num">65</td>
+            <td class="num">65</td>
+          </tr>
+          <tr>
+            <td class="name">pdf</td>
+            <td class="num">4.6 毫秒</td>
+            <td class="num">8.6 毫秒</td>
+            <td class="num">5.2 毫秒</td>
+            <td class="num">10.2 毫秒</td>
+            <td class="num">2,660</td>
+            <td class="num">3,768</td>
+            <td class="num">3,768</td>
+          </tr>
+          <tr>
+            <td class="name">zzzzqqqq</td>
+            <td class="num">0.63 毫秒</td>
+            <td class="num">0.43 毫秒</td>
+            <td class="num">4.1 毫秒</td>
+            <td class="num">7.9 毫秒</td>
+            <td class="num">0</td>
+            <td class="num">0</td>
+            <td class="num">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>这些数字怎么读</h2>
+    <ul>
+      <li>建索引这一项，findthing 用时更短，建完后占用的内存也更低。它少收了大约 50 万条，所以条目和另外两个不是同一批文件。</li>
+      <li>只打一个字母时，findthing 排好前 80 条就停，所以 a 是 1.5 毫秒、n 是 0.29 毫秒。把全部匹配都点清时，a 要 22 毫秒，对照 A 是 11.0 毫秒，对照 B 是 84.9 毫秒。</li>
+      <li>notepad 这种具体名字，对照 A 4.9 毫秒，对照 B 9.1 毫秒，findthing 13.8 毫秒。note、chrome、pdf 都在几毫秒到十几毫秒之间。</li>
+      <li>微信只有几十条，findthing 0.02 毫秒，对照 B 6.6 毫秒，对照 A 8.1 毫秒。</li>
+      <li>对照 A 和对照 B 的命中数几乎相同。findthing 较少，是因为上面说的那些目录没有收进索引。findthing 这个词本身，findthing 数到 355 条，另外两款数到 186 条。</li>
+      <li>三次测量都在这台电脑上完成。宣传页上的对比图仍是原先那组参考数字，没有用这里的结果替换。</li>
+    </ul>
+  </div>
+</body>
+</html>

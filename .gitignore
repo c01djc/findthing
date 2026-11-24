@@ -1,0 +1,9 @@
+/target/
+**/*.pdb
+.env
+.env.*
+accept-injected
+*.exe~
+*.bak
+.DS_Store
+Thumbs.db

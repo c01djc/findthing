@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>findthing</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --signal: #ef4e32;
+      --paper: #f4f0e6;
+      --cream: #fffdf9;
+      --muted: #5c6578;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.7), transparent 34%),
+        #e6e0d4;
+      font-family: "Microsoft YaHei UI", "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+
+    .page {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 72px;
+    }
+
+    .intro {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { width: 42px; height: 42px; }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    h1 b { color: var(--signal); font-weight: 650; }
+
+    .lede {
+      margin: 8px 0 0;
+      max-width: 460px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .switch, .themes {
+      display: flex;
+      padding: 4px;
+      background: rgba(255, 253, 249, 0.72);
+      border: 1px solid rgba(23, 32, 51, 0.1);
+      border-radius: 12px;
+    }
+
+    .switch { margin-left: auto; }
+
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .switch button, .themes button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 14px;
+      padding: 8px 14px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    .themes button { font-size: 13px; padding: 8px 12px; }
+
+    .switch button[aria-pressed="true"],
+    .themes button[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .stage { position: relative; margin-top: 22px; }
+
+    .hidden { display: none !important; }
+
+    .launcher {
+      width: min(612px, 100%);
+      margin: 0 auto;
+      opacity: 0;
+      transform: translateY(8px);
+      --bg: #f4f0e6;
+      --fg: #172033;
+      --muted: #5c6578;
+      --detail-on-color: #5c6578;
+      --card: #fffdf9;
+      --select: #f8e2da;
+      --hover: #1720330c;
+      --line: #17203312;
+      --search-line: #17203314;
+      --placeholder: #17203355;
+      --radius: 22px;
+      --search-h: 48px;
+      --search-r: 16px;
+      --row-h: 48px;
+      --row-r: 12px;
+      --pad: 18px;
+      --gap: 12px;
+      --title: 15px;
+      --title-on: 20px;
+      --detail: 12px;
+      --detail-on: 15px;
+      --head: 28px;
+      --logo: 26px;
+      --word: 18px;
+      --hint-gap: 12px;
+      color: var(--fg);
+    }
+
+    .launcher.in {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .launcher[data-theme="field"] { --pad: 18px; }
+    .launcher[data-theme="ink"] {
+      --bg: #172033;
+      --fg: #f4f0e6;
+      --muted: #f4f0e69e;
+      --detail-on-color: #fffdf9c6;
+      --card: #f4f0e610;
+      --select: #ef4e3328;
+      --hover: #f4f0e614;
+      --line: #f4f0e614;
+      --search-line: #f4f0e61f;
+      --placeholder: #f4f0e666;
+    }
+    .launcher[data-theme="split"] {
+      width: min(560px, 100%);
+      --bg: transparent;
+      --radius: 0px;
+      --search-h: 54px;
+      --search-r: 18px;
+      --pad: 0px;
+      --gap: 10px;
+      --hint-gap: 4px;
+    }
+    .launcher[data-theme="ledger"] {
+      --radius: 16px;
+      --search-h: 40px;
+      --search-r: 10px;
+      --row-h: 36px;
+      --row-r: 8px;
+      --pad: 12px;
+      --gap: 8px;
+      --title: 14px;
+      --title-on: 18px;
+      --head: 22px;
+      --logo: 20px;
+      --word: 15px;
+      --hint-gap: 8px;
+    }
+
+    .shell {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 22px #17203328;
+      padding: var(--pad);
+      overflow: hidden;
+      transition: height 160ms ease-out, background-color 200ms ease-out, border-color 200ms ease-out;
+    }
+
+    .launcher[data-theme="split"] .shell { overflow: visible; }
+
+    .launcher[data-theme="split"] .shell {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .head, .search, .row, .hints, .cap-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .head { height: var(--head); gap: 8px; }
+    .launcher[data-theme="field"] .head,
+    .launcher[data-theme="split"] .head { display: none; }
+
+    .mark { width: var(--logo); height: var(--logo); flex: none; }
+
+    .word {
+      font-size: var(--word);
+      font-weight: 600;
+    }
+
+    .word b { color: var(--signal); font-weight: 600; }
+
+    .search {
+      position: relative;
+      height: var(--search-h);
+      margin-top: var(--gap);
+      padding: 0 16px 0 16px;
+      gap: 8px;
+      background: var(--card);
+      border: 1.5px solid var(--search-line);
+      border-radius: var(--search-r);
+      transition: background-color 200ms ease-out, border-color 200ms ease-out, box-shadow 200ms ease-out;
+    }
+
+    .launcher[data-theme="field"] .search,
+    .launcher[data-theme="split"] .search { margin-top: 0; padding-left: 44px; }
+
+    .launcher[data-theme="split"] .search {
+      background: var(--paper);
+      color: var(--ink);
+      border: 0;
+      box-shadow: 0 6px 16px #17203328;
+    }
+
+    .search:focus-within { border-color: var(--signal); }
+    .launcher[data-theme="split"] .search:focus-within { box-shadow: 0 6px 16px #17203328, inset 0 0 0 1.5px var(--signal); }
+
+    .field-logo {
+      display: none;
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      width: 22px;
+      height: 22px;
+      transform: translateY(-50%);
+    }
+
+    .launcher[data-theme="field"] .field-logo,
+    .launcher[data-theme="split"] .field-logo { display: block; }
+
+    .search input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .launcher[data-theme="ledger"] .search input { font-size: 15px; }
+    .search input::placeholder { color: var(--placeholder); }
+
+    .index-note {
+      display: none;
+      position: absolute;
+      right: 12px;
+      top: 0;
+      height: 100%;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .launcher.indexing .index-note { display: flex; }
+    .launcher.indexing .search input { padding-right: 80px; }
+    .launcher.indexing .search input:placeholder-shown { padding-right: 206px; }
+    .launcher.indexing .search input::placeholder { color: transparent; }
+
+    .ring {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: conic-gradient(#ef4e32 0 48deg, #17203329 48deg 360deg);
+      -webkit-mask: radial-gradient(circle, transparent 5.5px, #000 6px);
+      mask: radial-gradient(circle, transparent 5.5px, #000 6px);
+      animation: spin 0.8s linear infinite;
+    }
+
+    .launcher[data-theme="ink"] .ring {
+      background: conic-gradient(#ef4e32 0 48deg, #f4f0e655 48deg 360deg);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sheet { margin-top: var(--gap); transition: opacity 160ms ease-out; }
+
+    .launcher[data-theme="split"] .sheet {
+      margin-top: 10px;
+      padding: 8px;
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 6px 16px #17203324;
+    }
+
+    .launcher[data-theme="split"] .sheet .hints { color: #5c6578; }
+
+    .results {
+      max-height: calc(8 * (var(--row-h) + 2px));
+      overflow: auto;
+    }
+
+    .launcher[data-theme="split"] .results { max-height: calc(8 * 50px); }
+
+    .row {
+      width: 100%;
+      height: var(--row-h);
+      margin-top: 2px;
+      padding: 0 12px 0 10px;
+      gap: 10px;
+      border: 0;
+      border-radius: var(--row-r);
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 160ms ease-out;
+    }
+
+    .row:first-child { margin-top: 0; }
+    .row.selected { background: var(--select); }
+    .row:hover:not(.selected) { background: var(--hover); }
+
+    .kind { width: 18px; height: 18px; flex: none; }
+    .kind svg { display: block; width: 18px; height: 18px; }
+
+    .copy { min-width: 0; flex: 1; }
+    .launcher[data-theme="ledger"] .copy {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title, .detail {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .title { font-size: var(--title); font-weight: 400; line-height: 1.2; text-overflow: clip; transition: font-size 160ms ease-out, color 160ms ease-out; }
+    .row.selected .title { font-size: var(--title-on); }
+    .title em { font-style: normal; font-weight: 400; color: var(--signal); }
+    .detail { margin-top: 1px; color: var(--muted); font-size: var(--detail); font-weight: 400; text-overflow: ellipsis; transition: font-size 160ms ease-out, color 160ms ease-out; }
+    .row.selected .detail { color: var(--detail-on-color); font-size: var(--detail-on); }
+    .launcher[data-theme="ledger"] .detail { margin-top: 0; flex: 1; }
+    .launcher[data-theme="split"] .title em { color: var(--signal); }
+
+    .hints {
+      gap: 16px;
+      min-height: 18px;
+      margin-top: var(--hint-gap);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .launcher[data-theme="split"] .hints { margin: 4px 4px 2px; }
+
+    .guide, .summon { display: flex; align-items: center; gap: 6px; }
+    .guide .keys { display: flex; gap: 3px; }
+    .summon { margin-left: auto; gap: 3px; }
+
+    .cap {
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      border: 1px solid #1720331c;
+      background: #fffdf9;
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .launcher[data-theme="ink"] .cap {
+      border-color: #f4f0e638;
+      background: #f4f0e614;
+      color: #f4f0e6;
+    }
+
+    .cap.solid {
+      border: 0;
+      background: #172033;
+      color: #f4f0e6;
+    }
+
+    .launcher[data-theme="ink"] .cap.solid {
+      background: #f4f0e6;
+      color: #172033;
+    }
+
+    .explorer {
+      position: relative;
+      width: min(860px, 100%);
+      margin: 0 auto;
+      background: #f7f5f2;
+      border: 1px solid rgba(23, 32, 51, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 18px 40px rgba(23, 32, 51, 0.12);
+      overflow: hidden;
+    }
+
+    .explorer-bar {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+      background: #fff;
+      border-bottom: 1px solid rgba(23, 32, 51, 0.08);
+      font-size: 13px;
+    }
+
+    .explorer-bar span { color: var(--muted); min-width: 0; }
+    .explorer-bar button {
+      margin-left: auto;
+      flex: none;
+      height: 28px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--ink);
+      color: var(--paper);
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .keyghost {
+      position: absolute;
+      left: 24px;
+      top: 50%;
+      z-index: 3;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: #172033;
+      color: #f4f0e6;
+      font-size: 13px;
+      pointer-events: none;
+      animation: keypop 420ms ease-out;
+    }
+
+    @keyframes keypop {
+      from { opacity: 0; transform: translateY(6px); }
+      25% { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-8px); }
+    }
+
+    .files {
+      height: 460px;
+      overflow: auto;
+      padding: 6px 8px 12px;
+    }
+
+    .file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .file.hit { background: #d6e4f5; }
+    .file .name { min-width: 0; overflow: hidden; white-space: nowrap; }
+
+    .dock {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      width: min(560px, calc(100% - 28px));
+      padding: 10px 28px 10px 12px;
+      background: #fffcf8;
+      border: 1px solid #17203322;
+      border-radius: 8px;
+      box-shadow: 0 8px 22px #17203328;
+    }
+
+    .dock-rows { position: relative; }
+    .dock-bar {
+      position: absolute;
+      top: 12px;
+      right: 20px;
+      width: 4px;
+      border-radius: 2px;
+      background: #17203314;
+    }
+    .dock-bar::after {
+      content: "";
+      display: block;
+      width: 4px;
+      height: var(--thumb, 18px);
+      border-radius: 2px;
+      background: #17203355;
+      transform: translateY(var(--thumb-y, 0px));
+    }
+
+    .dock-row {
+      width: 100%;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 400;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dock-row.selected { background: #d6e4f5; }
+    .dock-name { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: clip; color: #172033; }
+    .dock-size { flex: none; width: 82px; color: #7d8798; font-size: 12px; text-align: right; }
+
+    .dock-input {
+      position: relative;
+      display: block;
+      height: 32px;
+      margin-top: 10px;
+      background: #fff;
+      border: 1px solid #17203318;
+      border-radius: 6px;
+    }
+
+    .dock-input input {
+      width: 100%;
+      height: 100%;
+      padding: 0 78px 0 10px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .wm-find, .wm-thing {
+      position: absolute;
+      top: 17px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .wm-find { left: 448px; color: #172033c4; }
+    .wm-thing { left: 470px; color: #ef4e32; }
+
+    .caret {
+      display: none;
+      position: absolute;
+      top: 8px;
+      left: calc(10px + var(--chars, 0) * 7.8px);
+      width: 1px;
+      height: 16px;
+      background: #172033;
+      animation: caret 1.05s steps(1) infinite;
+    }
+
+    .explorer.playing .dock:not(.hidden) .caret { display: block; }
+    @keyframes caret { 50% { opacity: 0; } }
+
+    .menu {
+      position: absolute;
+      z-index: 4;
+      width: 188px;
+      padding: 6px;
+      background: #fffdf9;
+      border: 1.5px solid #17203338;
+      border-radius: 16px;
+      box-shadow: 0 6px 16px #17203328;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .menu.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .menu button {
+      display: block;
+      width: 100%;
+      height: 32px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #172033;
+      font: inherit;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: background-color 120ms ease-out;
+    }
+
+    .menu button:hover { background: #f8e2da; }
+    .menu hr { height: 1px; margin: 4px 8px; border: 0; background: #17203314; }
+    .menu.ink { background: #243044; border-color: #f4f0e666; }
+    .menu.ink button { color: #f4f0e6; }
+    .menu.ink button:hover { background: #ef4e3328; }
+    .menu.ink hr { background: #f4f0e61f; }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--ink);
+      color: var(--paper);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms linear, transform 120ms linear;
+      max-width: calc(100% - 48px);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .launcher.in, .shell, .search, .sheet, .row, .title, .detail, .menu, .menu button { transition: none; }
+      .ring, .caret, .keyghost { animation: none; }
+    }
+
+    @media (max-width: 720px) {
+      .intro { align-items: flex-start; flex-direction: column; }
+      .controls { margin-left: 0; }
+      .files { height: 380px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <div class="brand">
+        <img src="../brand/icon.svg" alt="" />
+        <div>
+          <h1>find<b>thing</b></h1>
+          <p class="lede" id="lede">Alt Space 呼出。输入文件名或命令，Enter 打开，Ctrl Enter 定位。结果不到 8 条时，窗口跟着收高，快捷键贴在最后一条下面。</p>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="themes" id="themes" role="tablist">
+          <button type="button" data-theme="paper" aria-pressed="true">素纸</button>
+          <button type="button" data-theme="field" aria-pressed="false">轻条</button>
+          <button type="button" data-theme="ink" aria-pressed="false">夜墨</button>
+          <button type="button" data-theme="split" aria-pressed="false">双笺</button>
+          <button type="button" data-theme="ledger" aria-pressed="false">细目</button>
+        </div>
+        <div class="switch" role="tablist">
+          <button type="button" id="tab-search" aria-pressed="true">搜索</button>
+          <button type="button" id="tab-locate" aria-pressed="false">文件夹定位</button>
+          <button type="button" id="tab-index" aria-pressed="false">索引更新</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="stage">
+      <section class="launcher" id="launcher" data-theme="paper">
+        <div class="shell">
+          <div class="head">
+            <img class="mark" src="../brand/icon.svg" alt="" />
+            <div class="word">find<b>thing</b></div>
+          </div>
+          <label class="search">
+            <img class="field-logo" src="../brand/icon.svg" alt="" />
+            <input id="query" type="text" placeholder="搜索文件名，或输入命令" autocomplete="off" spellcheck="false" />
+            <span class="index-note"><i class="ring" aria-hidden="true"></i><span id="index-label">正在更新索引，搜索会稍慢</span></span>
+          </label>
+          <div class="sheet" id="sheet">
+            <div class="results" id="results"></div>
+            <div class="hints" id="hints">
+              <span class="guide"><span class="keys"><i class="cap">Enter</i></span>打开</span>
+              <span class="guide"><span class="keys"><i class="cap">Ctrl</i><i class="cap">Enter</i></span>定位</span>
+              <span class="guide"><span class="keys"><i class="cap">Esc</i></span>关闭</span>
+              <span class="summon"><i class="cap solid">Alt</i><i class="cap solid">Space</i></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="explorer hidden" id="explorer" tabindex="0">
+        <div class="explorer-bar"><strong>下载</strong><span>演示会自己打字。定位条贴在右下角，不搜了就收起。</span><button type="button" id="replay">再看一遍</button></div>
+        <div class="files" id="files"></div>
+        <i class="keyghost hidden" id="keyghost"></i>
+        <div class="dock hidden" id="dock">
+          <div class="dock-rows" id="dock-rows"></div>
+          <i class="dock-bar" id="dock-bar" hidden></i>
+          <label class="dock-input">
+            <input id="dock-query" type="text" autocomplete="off" spellcheck="false" />
+            <i class="caret"></i>
+            <span class="wm-find">find</span><span class="wm-thing">thing</span>
+          </label>
+        </div>
+      </section>
+
+      <div class="menu" id="menu">
+        <button type="button" data-act="open">打开</button>
+        <button type="button" data-act="reveal">打开所在文件夹</button>
+        <hr />
+        <button type="button" data-act="copy">复制</button>
+        <button type="button" data-act="cut">剪切</button>
+        <button type="button" data-act="path">复制路径</button>
+        <button type="button" data-act="name">复制文件名</button>
+        <hr />
+        <button type="button" data-act="move">移动到…</button>
+        <button type="button" data-act="delete">删除</button>
+        <button type="button" data-act="run" hidden>运行</button>
+        <button type="button" data-act="copy-name" hidden>复制名称</button>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </main>
+
+  <script>
+    const commands = [
+      ["终端", ["终端", "wt", "terminal"], "打开 Windows 终端。适合日常输入命令，一个窗口里可以开多个标签。"],
+      ["命令提示符", ["命令提示符", "cmd", "command"], "打开传统命令提示符。适合运行 .bat 和较早的系统命令。"],
+      ["PowerShell", ["powershell", "ps"], "打开 PowerShell。适合跑脚本，也适合管理文件和系统。"],
+      ["环境变量", ["环境变量", "env", "path"], "打开环境变量窗口，用来查看或修改 Path。"],
+      ["设置", ["设置", "settings"], "打开 Windows 设置。"],
+      ["回收站", ["回收站", "recycle"], "打开回收站。"],
+      ["任务管理器", ["任务管理器", "taskmgr"], "打开任务管理器，查看正在运行的程序。"],
+      ["记事本", ["记事本", "notepad"], "打开记事本。"],
+      ["计算器", ["计算器", "calc", "calculator"], "打开计算器。"],
+      ["截图", ["截图", "snip", "screenshot"], "打开截图，框选屏幕上的一块区域。"]
+    ];
+
+    const files = [
+      ["leetaohua.jpg", "C:\\Users\\jc\\Pictures", "138 KB"],
+      ["ridecircle_final_v49.zip", "C:\\Users\\jc\\Documents", "31 KB"],
+      ["ridecircle_final_v48.zip", "C:\\Users\\jc\\Documents", "30 KB"],
+      ["公共安全智防系统性能报告.docx", "C:\\用户\\下载", "2.4 MB"],
+      ["gongyixunqin_RHYKM.zip", "C:\\用户\\下载", "18 MB"],
+      ["gongyixunqin_RHYKM", "C:\\用户\\下载", ""],
+      ["清明祭雨.html", "C:\\用户\\下载", "86 KB"],
+      ["年度报告.docx", "D:\\工作\\归档", "640 KB"],
+      ["报告-年度.docx", "D:\\工作\\归档", "512 KB"],
+      ["未标题-1.png", "C:\\用户\\图片", "1.2 MB"],
+      ["tree.png", "C:\\用户\\图片", "840 KB"],
+      ["新建 XLSX 工作表.xlsx", "C:\\用户\\文档", "24 KB"]
+    ];
+
+    const folder = [
+      ["batch_upload.sh", "4 KB"],
+      ["emlog_gray_mode_6dKps.zip", "1.1 MB"],
+      ["gemini-code-1793371845991.html", "96 KB"],
+      ["gongyixunqin_RHYKM.zip", "18 MB"],
+      ["main_banner_behind.png", "420 KB"],
+      ["ridecircle_final_v40.zip", "24 KB"],
+      ["ridecircle_final_v44.zip", "28 KB"],
+      ["ridecircle_final_v47_final.zip", "31 KB"],
+      ["ridecircle_final_v48.zip", "30 KB"],
+      ["ridecircle_final_v49.zip", "31 KB"],
+      ["trackbook.zip", "6.2 MB"],
+      ["tree.png", "840 KB"],
+      ["万圣夜惊魂.html", "74 KB"],
+      ["中秋月夜.html", "81 KB"],
+      ["公共安全智防系统性能报告.docx", "2.4 MB"],
+      ["清明祭雨.html", "86 KB"]
+    ];
+
+    const launcher = document.querySelector("#launcher");
+    const shell = launcher.querySelector(".shell");
+    const queryInput = document.querySelector("#query");
+    const indexLabel = document.querySelector("#index-label");
+    const results = document.querySelector("#results");
+    const sheet = document.querySelector("#sheet");
+    const hints = document.querySelector("#hints");
+    const explorer = document.querySelector("#explorer");
+    const filesBox = document.querySelector("#files");
+    const dock = document.querySelector("#dock");
+    const dockRows = document.querySelector("#dock-rows");
+    const dockQuery = document.querySelector("#dock-query");
+    const toast = document.querySelector("#toast");
+    const lede = document.querySelector("#lede");
+    const themes = document.querySelector("#themes");
+
+    let scene = "search";
+    let indexing = false;
+    let selected = 0;
+    let hits = [];
+    let dockFrom = 0;
+    let dockPick = 0;
+    let dockHits = [];
+    let toastTimer = 0;
+    const page = 9;
+
+    function esc(text) {
+      return text.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+    }
+
+    function titleHtml(title, query) {
+      const needle = query.trim();
+      const at = needle ? title.toLowerCase().indexOf(needle.toLowerCase()) : -1;
+      if (at < 0) return esc(title);
+      const end = at + needle.length;
+      return esc(title.slice(0, at)) + "<em>" + esc(title.slice(at, end)) + "</em>" + esc(title.slice(end));
+    }
+
+    function fileType(name) {
+      const dot = name.lastIndexOf(".");
+      if (dot <= 0) return "dir";
+      const ext = name.slice(dot + 1).toLowerCase();
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "zip";
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"].includes(ext)) return "image";
+      if (["html", "htm"].includes(ext)) return "html";
+      if (["sh", "bat", "cmd", "ps1", "js", "ts", "py", "rs", "css"].includes(ext)) return "code";
+      if (["doc", "docx", "txt", "md", "rtf"].includes(ext)) return "doc";
+      if (["xls", "xlsx", "csv"].includes(ext)) return "sheet";
+      if (ext === "pdf") return "pdf";
+      return "file";
+    }
+
+    function typeIcon(kind, onDark) {
+      const glyph = onDark ? "#F4F0E6" : "#172033";
+      const hole = onDark ? "#172033" : "#F4F0E6";
+      const icons = {
+        command: '<rect x="1" y="1" width="16" height="16" rx="4" fill="#EF4E32"/>',
+        dir: `<path fill="${glyph}" d="M1 5h5l1.4 1.6H17V15H1z"/><path fill="${hole}" d="M2.2 8.2h13.6V13.6H2.2z"/>`,
+        zip: `<rect x="2" y="1.5" width="14" height="15" rx="2" fill="${glyph}"/><path fill="#EF4E32" d="M8 1.5h2V3.4H8zm0 2.8h2v1.9H8zM8 7.1h2v1.9H8zm0 2.8h2V11.8H8z"/><path fill="${hole}" d="M8 13.2h2v2H8z"/>`,
+        image: `<rect x="1" y="3" width="16" height="12.5" rx="2" fill="${glyph}"/><circle cx="5.6" cy="7.2" r="1.6" fill="#EF4E32"/><path fill="${hole}" d="M2 12.2 6 8.8 9.2 11.2 12.2 8.8 16 12.6v1.6c0 .4-.4.8-.8.8H2.8c-.4 0-.8-.4-.8-.8V12.2z"/>`,
+        html: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="none" stroke="${hole}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M6.4 8.2 8.6 10.6 6.4 13M11.8 8.2 9.6 10.6 11.8 13"/>`,
+        code: `<rect x="1" y="2.5" width="16" height="13" rx="2" fill="${glyph}"/><path fill="none" stroke="${hole}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4.2 7.2 6.8 9.6 4.2 12"/><path fill="#EF4E32" d="M8.6 11.4h5v1.6h-5z"/>`,
+        doc: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M5 8.2h7.2v1.35H5zm0 2.5h5v1.35H5z"/>`,
+        sheet: `<rect x="1.5" y="1.5" width="15" height="15" rx="2" fill="${glyph}"/><path fill="#EF4E32" d="M1.5 1.5h15V5.2h-15z"/><path stroke="${hole}" stroke-width="1.15" d="M1.5 8.6h15M1.5 12.2h15M7 5.2v11.3M12 5.2v11.3"/>`,
+        pdf: `<path fill="#EF4E32" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M5.2 8.4h2.5c1.15 0 1.9.6 1.9 1.5s-.75 1.5-1.9 1.5H6.4V13H5.2zm1.2 1.9h1.1c.45 0 .75-.22.75-.55s-.3-.55-.75-.55H6.4z"/>`,
+        file: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M10.4 1.2V5c0 .5.4.9.9.9h3.9"/>`
+      };
+      return `<svg viewBox="0 0 18 18" aria-hidden="true">${icons[kind] || icons.file}</svg>`;
+    }
+
+    function scoreName(name, needle) {
+      const text = name.toLowerCase();
+      const query = needle.toLowerCase();
+      if (!query || !text.includes(query)) return 0;
+      if (text === query) return 2000;
+      if (text.startsWith(query)) return 1400 - Math.min(text.length - query.length, 500);
+      return 760;
+    }
+
+    function commandScore(command, needle) {
+      const query = needle.toLowerCase();
+      let best = 0;
+      for (const alias of command[1]) {
+        const text = alias.toLowerCase();
+        if (text === query) best = Math.max(best, 1600);
+        else if (text.startsWith(query)) best = Math.max(best, 980);
+        else if (text.includes(query)) best = Math.max(best, 760);
+      }
+      if (command[0].includes(needle)) best = Math.max(best, 820);
+      return best;
+    }
+
+    function search(needle) {
+      const query = needle.trim();
+      if (!query) return [];
+      const found = [];
+      for (const file of files) {
+        const score = scoreName(file[0], query);
+        if (!score) continue;
+        const kind = file[2] ? fileType(file[0]) : "dir";
+        found.push({ score, kind, title: file[0], detail: file[1], target: file[0] });
+      }
+      for (const command of commands) {
+        const score = commandScore(command, query);
+        if (score) found.push({ score, kind: "command", title: command[0], detail: command[2], target: command[0] });
+      }
+      found.sort((a, b) => b.score - a.score || a.title.length - b.title.length);
+      return found.slice(0, 40);
+    }
+
+    let fitted = false;
+    let hadRows = false;
+
+    function fitShell() {
+      const animate = fitted;
+      const prev = shell.getBoundingClientRect().height;
+      shell.style.transition = "none";
+      shell.style.height = "auto";
+      const next = shell.getBoundingClientRect().height;
+      shell.style.height = prev + "px";
+      if (!animate || Math.abs(next - prev) < 1) {
+        shell.style.height = next + "px";
+        fitted = true;
+        requestAnimationFrame(() => { shell.style.transition = ""; });
+        return;
+      }
+      void shell.offsetHeight;
+      shell.style.transition = "";
+      void shell.offsetHeight;
+      shell.style.height = next + "px";
+      fitted = true;
+    }
+
+    function renderResults() {
+      hits = search(queryInput.value);
+      selected = Math.min(selected, Math.max(hits.length - 1, 0));
+      const has = hits.length > 0;
+      const appear = has && !hadRows;
+      if (!has && hadRows) {
+        sheet.style.transition = "none";
+        sheet.style.opacity = "0";
+      }
+      sheet.classList.toggle("hidden", !has);
+      hints.classList.toggle("hidden", !has);
+      results.replaceChildren();
+      hits.forEach((hit, index) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "row" + (index === selected ? " selected" : "");
+        row.innerHTML = '<i class="kind"></i><span class="copy"><span class="title"></span><span class="detail"></span></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(hit.kind, launcher.dataset.theme === "ink");
+        row.querySelector(".title").innerHTML = titleHtml(hit.title, queryInput.value);
+        row.querySelector(".detail").textContent = hit.detail;
+        row.addEventListener("mouseenter", () => {
+          selected = index;
+          paintSelection();
+        });
+        row.addEventListener("click", () => activate(false));
+        results.append(row);
+      });
+      const current = results.children[selected];
+      if (current) current.scrollIntoView({ block: "nearest" });
+      if (appear) {
+        sheet.style.transition = "none";
+        sheet.style.opacity = "0";
+        requestAnimationFrame(() => {
+          sheet.style.transition = "";
+          sheet.style.opacity = "1";
+        });
+      } else if (has) {
+        sheet.style.transition = "";
+        sheet.style.opacity = "1";
+      }
+      hadRows = has;
+      fitShell();
+    }
+
+    function paintSelection() {
+      [...results.children].forEach((row, index) => row.classList.toggle("selected", index === selected));
+    }
+
+    function activate(reveal) {
+      const hit = hits[selected];
+      if (!hit) return;
+      showToast((reveal ? "已定位到文件夹" : "已打开") + "  ·  " + hit.title);
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function paintIndex() {
+      launcher.classList.toggle("indexing", indexing);
+      document.querySelector("#tab-index").setAttribute("aria-pressed", String(indexing));
+      const empty = queryInput.value.trim() === "";
+      indexLabel.textContent = empty ? "正在更新索引，搜索会稍慢" : "更新中";
+    }
+
+    function folderMatches(needle) {
+      const query = needle.trim().toLowerCase();
+      if (!query) return [];
+      const prefix = [];
+      const rest = [];
+      folder.forEach((item, index) => {
+        const name = item[0].toLowerCase();
+        if (name.startsWith(query)) prefix.push(index);
+        else if (name.includes(query)) rest.push(index);
+      });
+      return prefix.concat(rest).slice(0, 80);
+    }
+
+    function paintLocate() {
+      [...filesBox.children].forEach((row, index) => {
+        row.classList.toggle("hit", index === dockHits[dockPick]);
+      });
+      [...dockRows.children].forEach((row, offset) => {
+        row.classList.toggle("selected", dockFrom + offset === dockPick);
+      });
+      filesBox.children[dockHits[dockPick]]?.scrollIntoView({ block: "nearest" });
+    }
+
+    function renderFolder() {
+      const query = dockQuery.value;
+      filesBox.replaceChildren();
+      folder.forEach((item, index) => {
+        const row = document.createElement("div");
+        const picked = dockHits[dockPick];
+        row.className = "file" + (index === picked ? " hit" : "");
+        row.innerHTML = '<i class="kind"></i><span class="name"></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(fileType(item[0]));
+        row.querySelector(".name").textContent = item[0];
+        row.addEventListener("click", () => {
+          stopReel();
+          hideDock();
+        });
+        filesBox.append(row);
+      });
+      const current = filesBox.children[dockHits[dockPick]];
+      if (current) current.scrollIntoView({ block: "nearest" });
+      renderDock(query);
+    }
+
+    function renderDock(query) {
+      const open = query.trim() !== "";
+      dock.classList.toggle("hidden", !open);
+      if (!open) {
+        dockRows.replaceChildren();
+        document.querySelector("#dock-bar").hidden = true;
+        return;
+      }
+      dock.style.setProperty("--chars", String(query.trim().length));
+      const visible = dockHits.slice(dockFrom, dockFrom + page);
+      dockRows.replaceChildren();
+      visible.forEach((index, offset) => {
+        const item = folder[index];
+        const row = document.createElement("button");
+        row.type = "button";
+        const absolute = dockFrom + offset;
+        row.className = "dock-row" + (absolute === dockPick ? " selected" : "");
+        row.innerHTML = '<i class="kind"></i><span class="dock-name"></span><span class="dock-size"></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(fileType(item[0]));
+        row.querySelector(".dock-name").textContent = item[0];
+        row.querySelector(".dock-size").textContent = item[1];
+        row.addEventListener("mouseenter", () => {
+          dockPick = absolute;
+          paintLocate();
+        });
+        row.addEventListener("click", () => {
+          dockPick = absolute;
+          showToast("已打开  ·  " + item[0]);
+        });
+        dockRows.append(row);
+      });
+      const bar = document.querySelector("#dock-bar");
+      const many = dockHits.length > page;
+      bar.hidden = !many;
+      if (many) {
+        const track = Math.min(dockHits.length, page) * 32 - 4;
+        const thumb = Math.max(18, track * page / dockHits.length);
+        const travel = Math.max(track - thumb, 0);
+        const top = dockHits.length <= page ? 0 : travel * dockFrom / (dockHits.length - page);
+        bar.style.height = track + "px";
+        bar.style.setProperty("--thumb", thumb + "px");
+        bar.style.setProperty("--thumb-y", top + "px");
+      }
+    }
+
+    function syncDock(resetPick) {
+      dockHits = folderMatches(dockQuery.value);
+      if (resetPick) dockPick = 0;
+      dockPick = Math.min(dockPick, Math.max(dockHits.length - 1, 0));
+      if (dockPick < dockFrom) dockFrom = dockPick;
+      if (dockPick >= dockFrom + page) dockFrom = dockPick - page + 1;
+      dockFrom = Math.max(0, Math.min(dockFrom, Math.max(dockHits.length - page, 0)));
+      renderFolder();
+    }
+
+    function hideDock() {
+      dockQuery.value = "";
+      dockHits = [];
+      dockPick = 0;
+      dockFrom = 0;
+      renderFolder();
+      explorer.focus();
+    }
+
+    function openDock(text) {
+      dock.classList.remove("hidden");
+      dockQuery.value = text;
+      dockQuery.focus();
+      syncDock(true);
+    }
+
+    function setScene(next) {
+      scene = next;
+      hideMenu();
+      const searching = next === "search";
+      launcher.classList.toggle("hidden", !searching);
+      explorer.classList.toggle("hidden", searching);
+      themes.classList.toggle("hidden", !searching);
+      document.querySelector("#tab-search").setAttribute("aria-pressed", String(searching));
+      document.querySelector("#tab-locate").setAttribute("aria-pressed", String(!searching));
+      document.querySelector("#tab-index").classList.toggle("hidden", !searching);
+      lede.textContent = searching
+        ? "Alt Space 呼出。输入文件名或命令，Enter 打开，Ctrl Enter 定位。结果不到 8 条时，窗口跟着收高，快捷键贴在最后一条下面。"
+        : "下面这段会自己打字。定位条贴在文件列表右下角，高度立刻跟着条数变。删光、按 Esc，或点到列表上，窗口收起。";
+      if (searching) {
+        launcher.classList.remove("in");
+        requestAnimationFrame(() => launcher.classList.add("in"));
+        queryInput.focus();
+      } else explorer.focus();
+    }
+
+    queryInput.addEventListener("input", () => {
+      selected = 0;
+      paintIndex();
+      renderResults();
+    });
+
+    queryInput.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        selected = Math.min(selected + 1, hits.length - 1);
+        paintSelection();
+        results.children[selected]?.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        selected = Math.max(selected - 1, 0);
+        paintSelection();
+        results.children[selected]?.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        activate(event.ctrlKey);
+      } else if (event.key === "Escape") {
+        queryInput.value = "";
+        selected = 0;
+        paintIndex();
+        renderResults();
+      }
+    });
+
+    document.querySelector("#tab-index").addEventListener("click", () => {
+      indexing = !indexing;
+      paintIndex();
+    });
+
+    themes.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      launcher.dataset.theme = button.dataset.theme;
+      themes.querySelectorAll("button").forEach((item) => {
+        item.setAttribute("aria-pressed", String(item === button));
+      });
+      renderResults();
+    });
+
+    explorer.addEventListener("keydown", (event) => {
+      if (scene !== "locate") return;
+      if (event.target === dockQuery) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "Escape") {
+        stopReel();
+        hideDock();
+        return;
+      }
+      if (event.key.length !== 1) return;
+      event.preventDefault();
+      stopReel();
+      openDock(event.key);
+    });
+
+    dockQuery.addEventListener("input", () => {
+      if (playing) stopReel();
+      syncDock(true);
+    });
+    dockQuery.addEventListener("keydown", (event) => {
+      if (playing) stopReel();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        hideDock();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        dockPick = Math.min(dockPick + 1, dockHits.length - 1);
+        syncDock(false);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        dockPick = Math.max(dockPick - 1, 0);
+        syncDock(false);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const item = folder[dockHits[dockPick]];
+        if (item) showToast((event.ctrlKey ? "已定位" : "已打开") + "  ·  " + item[0]);
+      }
+    });
+
+    dock.addEventListener("wheel", (event) => {
+      if (dockHits.length <= page) return;
+      event.preventDefault();
+      dockFrom = Math.max(0, Math.min(dockHits.length - page, dockFrom + (event.deltaY > 0 ? 1 : -1)));
+      renderDock(dockQuery.value);
+    }, { passive: false });
+
+    const menu = document.querySelector("#menu");
+
+    function hideMenu() {
+      menu.classList.remove("open");
+    }
+
+    results.addEventListener("contextmenu", (event) => {
+      const row = event.target.closest(".row");
+      if (!row) return;
+      event.preventDefault();
+      selected = [...results.children].indexOf(row);
+      paintSelection();
+      const command = hits[selected] && hits[selected].kind === "command";
+      menu.classList.toggle("ink", launcher.dataset.theme === "ink");
+      menu.querySelectorAll("button").forEach((button) => {
+        const commandOnly = button.dataset.act === "run" || button.dataset.act === "copy-name";
+        button.hidden = command ? !commandOnly : commandOnly;
+      });
+      menu.querySelectorAll("hr").forEach((line) => {
+        line.hidden = command;
+      });
+      menu.classList.add("open");
+      const bounds = menu.parentElement.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(event.clientX - bounds.left, bounds.width - 196)) + "px";
+      menu.style.top = Math.max(8, event.clientY - bounds.top) + "px";
+    });
+
+    menu.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      const hit = hits[selected];
+      hideMenu();
+      if (!hit) return;
+      const labels = {
+        open: "已打开",
+        reveal: "已定位到文件夹",
+        run: "已运行",
+        copy: "已复制",
+        cut: "已剪切",
+        path: "已复制路径",
+        name: "已复制文件名",
+        "copy-name": "已复制名称",
+        move: "移动到…",
+        delete: "已删除"
+      };
+      showToast((labels[button.dataset.act] || "已完成") + "  ·  " + hit.title);
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!menu.contains(event.target)) hideMenu();
+    });
+
+    const keyghost = document.querySelector("#keyghost");
+    let reelToken = 0;
+    let playing = false;
+
+    function stopReel() {
+      reelToken += 1;
+      playing = false;
+      explorer.classList.remove("playing");
+      keyghost.classList.add("hidden");
+    }
+
+    function flashKey(label) {
+      keyghost.textContent = label;
+      keyghost.classList.remove("hidden");
+      keyghost.style.animation = "none";
+      void keyghost.offsetWidth;
+      keyghost.style.animation = "";
+    }
+
+    function typeStep(text, key) {
+      flashKey(key || text.slice(-1));
+      dockQuery.value = text;
+      syncDock(true);
+    }
+
+    function moveStep(pick) {
+      dockPick = Math.min(pick, Math.max(dockHits.length - 1, 0));
+      syncDock(false);
+    }
+
+    function playReel() {
+      stopReel();
+      const token = ++reelToken;
+      playing = true;
+      explorer.classList.add("playing");
+      hideDock();
+      const steps = [
+        [700, () => typeStep("r")],
+        [1300, () => typeStep("ri")],
+        [1900, () => typeStep("rid")],
+        [2600, () => moveStep(1)],
+        [3200, () => moveStep(2)],
+        [3900, () => typeStep("ride")],
+        [4700, () => typeStep("rid", "⌫")],
+        [5200, () => typeStep("ri", "⌫")],
+        [5700, () => typeStep("r", "⌫")],
+        [6300, () => { flashKey("Esc"); hideDock(); }],
+        [7600, () => { if (token === reelToken && scene === "locate") playReel(); }]
+      ];
+      steps.forEach(([delay, run]) => {
+        setTimeout(() => {
+          if (token !== reelToken || scene !== "locate") return;
+          run();
+        }, delay);
+      });
+    }
+
+    document.querySelector("#tab-search").addEventListener("click", () => {
+      stopReel();
+      setScene("search");
+    });
+    document.querySelector("#tab-locate").addEventListener("click", () => {
+      setScene("locate");
+      playReel();
+    });
+    document.querySelector("#replay").addEventListener("click", () => playReel());
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("scene") !== "locate") {
+      const preset = params.get("q") || "";
+      if (preset) queryInput.value = preset;
+      const theme = params.get("theme");
+      if (theme && themes.querySelector(`[data-theme="${theme}"]`)) {
+        launcher.dataset.theme = theme;
+        themes.querySelectorAll("button").forEach((item) => {
+          item.setAttribute("aria-pressed", String(item.dataset.theme === theme));
+        });
+      }
+    }
+    renderFolder();
+    renderResults();
+    paintIndex();
+    requestAnimationFrame(() => launcher.classList.add("in"));
+    if (params.get("scene") === "locate") {
+      setScene("locate");
+      const preset = params.get("q") || "";
+      if (preset) openDock(preset);
+      else if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) openDock("rid");
+      else playReel();
+    } else {
+      queryInput.focus();
+    }
+  </script>
+</body>
+</html>

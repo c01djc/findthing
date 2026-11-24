@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>findthing</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --signal: #ef4e32;
+      --paper: #f4f0e6;
+      --fold: #fff1ec;
+      --muted: #5c6578;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 72px 32px 80px;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .hero img {
+      width: 112px;
+      height: 112px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+    }
+
+    h1 span { color: var(--signal); }
+
+    .tag {
+      margin: 12px 0 0;
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    section { margin-top: 56px; }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .panel {
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+    }
+
+    .lockup {
+      height: 64px;
+    }
+
+    .sizes {
+      display: flex;
+      align-items: end;
+      gap: 28px;
+    }
+
+    .sizes figure {
+      margin: 0;
+      text-align: center;
+    }
+
+    .sizes figcaption {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .dark {
+      background: var(--ink);
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .dark img { width: 72px; height: 72px; }
+
+    .dark .name {
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      color: var(--paper);
+      line-height: 1;
+    }
+
+    .dark .name span { color: var(--signal); }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .swatch {
+      border-radius: 16px;
+      overflow: hidden;
+      background: white;
+    }
+
+    .swatch i {
+      display: block;
+      height: 88px;
+    }
+
+    .swatch p {
+      margin: 0;
+      padding: 12px 14px 14px;
+      font-size: 14px;
+    }
+
+    .swatch b { display: block; font-weight: 600; }
+    .swatch span { color: var(--muted); font-size: 12px; }
+
+    .note {
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="hero">
+      <img src="icon.svg" alt="findthing 图标" />
+      <div>
+        <h1>find<span>thing</span></h1>
+        <p class="tag">找到文件，定位过去，顺手把命令也跑了。</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>横式</h2>
+      <div class="panel">
+        <img class="lockup" src="lockup.svg" alt="findthing" />
+      </div>
+    </section>
+
+    <section>
+      <h2>尺寸</h2>
+      <div class="panel">
+        <div class="sizes">
+          <figure><img src="icon.svg" width="16" height="16" alt="" /><figcaption>16</figcaption></figure>
+          <figure><img src="icon.svg" width="24" height="24" alt="" /><figcaption>24</figcaption></figure>
+          <figure><img src="icon.svg" width="32" height="32" alt="" /><figcaption>32</figcaption></figure>
+          <figure><img src="icon.svg" width="48" height="48" alt="" /><figcaption>48</figcaption></figure>
+          <figure><img src="icon.svg" width="64" height="64" alt="" /><figcaption>64</figcaption></figure>
+        </div>
+      </div>
+      <p class="note">托盘和资源管理器里会缩到 16、24。放大镜和红色文件要还能分开，所以笔画很粗，文件不带多余细节。</p>
+    </section>
+
+    <section>
+      <h2>深色底</h2>
+      <div class="dark">
+        <img src="mark-light.svg" alt="" />
+        <div class="name">find<span>thing</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>颜色</h2>
+      <div class="swatches">
+        <div class="swatch">
+          <i style="background:#172033"></i>
+          <p><b>墨蓝</b><span>#172033</span></p>
+        </div>
+        <div class="swatch">
+          <i style="background:#EF4E32"></i>
+          <p><b>陶红</b><span>#EF4E32</span></p>
+        </div>
+        <div class="swatch">
+          <i style="background:#F4F0E6"></i>
+          <p><b>纸色</b><span>#F4F0E6</span></p>
+        </div>
+      </div>
+      <p class="note">放大镜是搜索。镜片里的红色文件，是刚被定位到的那一个。find 用墨蓝，thing 用陶红。</p>
+    </section>
+  </main>
+</body>
+</html>

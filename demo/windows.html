@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>findthing 窗口稿</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --signal: #ef4e32;
+      --paper: #f4f0e6;
+      --muted: #5c6578;
+      --card: #fffdf9;
+      --select: #fde4dc;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; }
+
+    body {
+      color: var(--ink);
+      background: #efeae0;
+      font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+    }
+
+    .top {
+      width: min(1080px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 36px 0 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand img { width: 36px; height: 36px; }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+    }
+
+    h1 b { color: var(--signal); font-weight: 650; }
+
+    .lede {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stage {
+      width: min(1080px, calc(100% - 40px));
+      margin: 28px auto 0;
+    }
+
+    .stage header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .stage h2 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 650;
+    }
+
+    .stage p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .desk {
+      min-height: 220px;
+      padding: 36px 28px 42px;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 42%),
+        radial-gradient(circle at 12% 0%, #f7f1e6, transparent 36%),
+        #d9d3c6;
+      box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.06);
+    }
+
+    .win {
+      width: min(640px, 100%);
+      margin: 0 auto;
+      color: var(--ink);
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid rgba(23, 32, 51, 0.08);
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(23, 32, 51, 0.16);
+    }
+
+    .pad { padding: 16px 16px 12px; }
+
+    .head, .search, .row, .foot {
+      display: flex;
+      align-items: center;
+    }
+
+    .head { height: 28px; gap: 8px; }
+
+    .mark { width: 26px; height: 26px; flex: none; }
+
+    .word {
+      font-size: 18px;
+      font-weight: 650;
+      letter-spacing: -0.04em;
+    }
+
+    .word b { color: var(--signal); font-weight: 650; }
+
+    .count {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .search {
+      height: 48px;
+      margin-top: 12px;
+      padding: 0 16px;
+      gap: 10px;
+      background: var(--card);
+      border: 1.5px solid rgba(23, 32, 51, 0.1);
+      border-radius: 16px;
+    }
+
+    .search:focus-within { border-color: var(--signal); }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 16px;
+    }
+
+    .search input::placeholder { color: rgba(23, 32, 51, 0.38); }
+
+    .list { margin-top: 8px; }
+
+    .row {
+      width: 100%;
+      min-height: 48px;
+      padding: 6px 10px;
+      gap: 10px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .row.selected { background: var(--select); }
+
+    .kind {
+      width: 18px;
+      height: 18px;
+      flex: none;
+      display: grid;
+      place-items: center;
+    }
+
+    .kind svg { width: 18px; height: 18px; display: block; }
+
+    .copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+
+    .title, .detail {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .title { font-size: 15px; }
+
+    .detail { color: var(--muted); font-size: 12px; }
+
+    .foot {
+      min-height: 28px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .win:not(.has-rows) .list,
+    .win:not(.has-rows) .foot,
+    .win:not(.has-rows) .count { display: none; }
+
+    .win.field .head { display: none; }
+    .win.field .search { margin-top: 0; }
+    .win.field .search .mark { width: 22px; height: 22px; }
+
+    .win.ink .panel {
+      background: #172033;
+      border-color: rgba(244, 240, 230, 0.08);
+      color: var(--paper);
+      box-shadow: 0 22px 46px rgba(23, 32, 51, 0.28);
+    }
+
+    .win.ink .word { color: var(--paper); }
+    .win.ink .count,
+    .win.ink .detail,
+    .win.ink .foot { color: rgba(244, 240, 230, 0.62); }
+
+    .win.ink .search {
+      background: rgba(244, 240, 230, 0.06);
+      border-color: rgba(244, 240, 230, 0.12);
+    }
+
+    .win.ink .search input { color: var(--paper); }
+    .win.ink .search input::placeholder { color: rgba(244, 240, 230, 0.4); }
+    .win.ink .search:focus-within { border-color: var(--signal); }
+    .win.ink .row.selected { background: var(--signal); color: #fffdf9; }
+    .win.ink .row.selected .detail { color: rgba(255, 253, 249, 0.78); }
+
+    .win.split { width: min(560px, 100%); }
+    .win.split .panel { box-shadow: none; background: transparent; border: 0; }
+    .win.split .pad { padding: 0; }
+    .win.split .head { display: none; }
+    .win.split .search {
+      margin: 0;
+      height: 54px;
+      padding: 0 18px;
+      background: var(--paper);
+      border: 0;
+      border-radius: 18px;
+      box-shadow: 0 14px 34px rgba(23, 32, 51, 0.16);
+    }
+    .win.split .sheet {
+      margin-top: 10px;
+      padding: 8px;
+      background: var(--paper);
+      border-radius: 18px;
+      box-shadow: 0 16px 36px rgba(23, 32, 51, 0.14);
+    }
+    .win.split:not(.has-rows) .sheet { display: none; }
+    .win.split .list { margin: 0; }
+    .win.split .foot { padding: 4px 10px 6px; }
+
+    .win.ledger .panel { border-radius: 16px; }
+    .win.ledger .pad { padding: 12px 12px 8px; }
+    .win.ledger .head { height: 22px; }
+    .win.ledger .word { font-size: 15px; }
+    .win.ledger .search { height: 40px; margin-top: 8px; border-radius: 10px; }
+    .win.ledger .search input { font-size: 15px; }
+    .win.ledger .row { min-height: 36px; border-radius: 8px; padding: 4px 8px; }
+    .win.ledger .copy { flex-direction: row; align-items: baseline; gap: 16px; width: 100%; }
+    .win.ledger .title { flex: none; max-width: 46%; }
+    .win.ledger .detail { margin-left: auto; }
+
+    .page-end { height: 48px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="../brand/icon.svg" alt="" />
+      <h1>find<b>thing</b></h1>
+    </div>
+    <p class="lede">五种窗口。空着时只有搜索；输入「方案」或「终端」看结果。方向键和滚轮都能换选中项。</p>
+  </header>
+  <div id="board"></div>
+  <div class="page-end"></div>
+  <script>
+    const designs = [
+      { id: "paper", name: "素纸", note: "现在软件里的这一版：标志一行，搜索一行，结果贴在下面。" },
+      { id: "field", name: "轻条", note: "空窗不再单独放标志。标志进到输入框里，有结果才把列表展开。" },
+      { id: "ink", name: "夜墨", note: "整块用墨蓝。选中行是朱红，适合放在浅色桌面上。" },
+      { id: "split", name: "双笺", note: "搜索是一条，结果是底下另一块。没有结果时桌面上只剩搜索。" },
+      { id: "ledger", name: "细目", note: "更扁。文件名在左，路径在右，同样高度能多看几行。" }
+    ];
+
+    const files = [
+      ["方案", "dir", "E:\\desktop\\work\\报告"],
+      ["方案评比日程安排-1020-陈亮更新版.xlsx", "sheet", "E:\\wechat\\fileStorage\\WeChat Files\\wxid_rm9fau264tkq22\\FileStorage\\MsgAttach\\27005f..."],
+      ["工作方案.md", "doc", "C:\\Users\\jc\\AppData\\Roaming\\kingsoft\\office6\\sandbox\\runtime\\skills\\dock\\skills\\wps-dr..."],
+      ["工作方案.md", "doc", "F:\\wps\\12.1.0.28802\\office6\\addons\\kcoworkdockpanel\\service\\skills\\wps-draft-docx-gen..."],
+      ["技术方案.doc", "doc", "E:\\desktop\\网站\\WDR-20240501003853\\Users\\onnfz\\Documents\\WeChat Files\\wxid_rm9f..."],
+      ["(5)方案及计划.docx", "doc", "C:\\Users\\jc\\Desktop\\技术鉴定归档整理"],
+      ["(5)方案及计划.docx", "doc", "C:\\Users\\jc\\WPS Cloud Files\\_219535767\\cachedata\\F402C6EA7E447798A8A40C79D432..."],
+      ["04 软件产品测试方案.doc", "doc", "C:\\Users\\jc\\Desktop\\课题1归档"],
+      ["powershell.txt", "doc", "C:\\Users\\jc\\Desktop"],
+      ["年度报告.docx", "doc", "D:\\工作\\归档"]
+    ];
+
+    const commands = [
+      ["终端", "在当前文件夹打开 Windows 终端", ["终端", "wt", "terminal"]],
+      ["PowerShell", "在当前文件夹打开 PowerShell", ["powershell", "ps"]],
+      ["命令提示符", "在当前文件夹打开 cmd", ["cmd", "命令提示符"]],
+      ["环境变量", "打开系统环境变量", ["环境变量", "env"]],
+      ["设置", "打开 Windows 设置", ["设置", "settings"]]
+    ];
+
+    const icons = {
+      dir: '<path fill="#172033" d="M1 5h5l1.4 1.6H17V15H1z"/><path fill="#F4F0E6" d="M2.2 8.2h13.6V13.6H2.2z"/>',
+      zip: '<rect x="2" y="1.5" width="14" height="15" rx="2" fill="#172033"/><path fill="#EF4E32" d="M8 1.5h2V3.4H8zm0 2.8h2v1.9H8zM8 7.1h2v1.9H8zm0 2.8h2V11.8H8z"/><path fill="#F4F0E6" d="M8 13.2h2v2H8z"/>',
+      image: '<rect x="1" y="3" width="16" height="12.5" rx="2" fill="#172033"/><circle cx="5.6" cy="7.2" r="1.6" fill="#EF4E32"/><path fill="#F4F0E6" d="M2 12.2 6 8.8 9.2 11.2 12.2 8.8 16 12.6v1.6c0 .4-.4.8-.8.8H2.8c-.4 0-.8-.4-.8-.8V12.2z"/>',
+      code: '<rect x="1" y="2.5" width="16" height="13" rx="2" fill="#172033"/><path fill="none" stroke="#F4F0E6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4.2 7.2 6.8 9.6 4.2 12"/><path fill="#EF4E32" d="M8.6 11.4h5v1.6h-5z"/>',
+      doc: '<path fill="#172033" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="#F4F0E6" d="M5 8.2h7.2v1.35H5zm0 2.5h5v1.35H5z"/>',
+      sheet: '<rect x="1.5" y="1.5" width="15" height="15" rx="2" fill="#172033"/><path fill="#EF4E32" d="M1.5 1.5h15V5.2h-15z"/><path stroke="#F4F0E6" stroke-width="1.15" d="M1.5 8.6h15M1.5 12.2h15M7 5.2v11.3M12 5.2v11.3"/>',
+      pdf: '<path fill="#EF4E32" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="#F4F0E6" d="M5.2 8.4h2.5c1.15 0 1.9.6 1.9 1.5s-.75 1.5-1.9 1.5H6.4V13H5.2zm1.2 1.9h1.1c.45 0 .75-.22.75-.55s-.3-.55-.75-.55H6.4z"/>',
+      command: '<rect x="1" y="1" width="16" height="16" rx="4" fill="#EF4E32"/>',
+      file: '<path fill="#172033" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="#F4F0E6" d="M10.4 1.2V5c0 .5.4.9.9.9h3.9"/>'
+    };
+
+    function icon(kind) {
+      return `<svg viewBox="0 0 18 18" aria-hidden="true">${icons[kind] || icons.file}</svg>`;
+    }
+
+    function search(raw) {
+      const query = raw.trim();
+      if (!query) return [];
+      const found = [];
+      const needle = query.toLowerCase();
+      for (const file of files) {
+        const name = file[0].toLowerCase();
+        let score = 0;
+        if (name === needle) score = 2000;
+        else if (name.startsWith(needle)) score = 1400;
+        else if (name.includes(needle)) score = 760;
+        if (score) found.push({ score, kind: file[1], title: file[0], detail: file[2] });
+      }
+      for (const command of commands) {
+        let score = 0;
+        for (const alias of command[2]) {
+          const text = alias.toLowerCase();
+          if (text === needle || alias === query) score = Math.max(score, 2500);
+          else if (text.startsWith(needle) || alias.startsWith(query)) score = Math.max(score, 1800);
+          else if (text.includes(needle) || alias.includes(query)) score = Math.max(score, 900);
+        }
+        if (score) found.push({ score, kind: "command", title: command[0], detail: command[1] });
+      }
+      found.sort((a, b) => b.score - a.score || a.title.length - b.title.length);
+      return found.slice(0, 8);
+    }
+
+    const board = document.querySelector("#board");
+    const windows = [];
+
+    for (const design of designs) {
+      const stage = document.createElement("section");
+      stage.className = "stage";
+      stage.innerHTML = `
+        <header>
+          <h2></h2>
+          <p></p>
+        </header>
+        <div class="desk">
+          <div class="win">
+            <div class="panel">
+              <div class="pad">
+                <div class="head">
+                  <img class="mark" src="../brand/icon.svg" alt="" />
+                  <div class="word">find<b>thing</b></div>
+                  <div class="count">189.8 万个文件名</div>
+                </div>
+                <label class="search">
+                  <img class="mark" alt="" hidden />
+                  <input type="text" placeholder="搜索文件名，或输入命令" spellcheck="false" />
+                </label>
+                <div class="sheet">
+                  <div class="list"></div>
+                  <div class="foot">Enter 打开　　Ctrl+Enter 定位到文件夹　　Esc 关闭　　滚轮换选中</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      stage.querySelector("h2").textContent = design.name;
+      stage.querySelector("p").textContent = design.note;
+      const win = stage.querySelector(".win");
+      win.classList.add(design.id);
+      const fieldMark = win.querySelector(".search .mark");
+      if (design.id === "field" || design.id === "split") {
+        fieldMark.hidden = false;
+        fieldMark.src = "../brand/icon.svg";
+      }
+      board.append(stage);
+      windows.push({
+        win,
+        input: win.querySelector("input"),
+        list: win.querySelector(".list"),
+        selected: 0,
+        hits: []
+      });
+    }
+
+    function paint(state) {
+      state.hits = search(state.input.value);
+      state.selected = Math.min(state.selected, Math.max(state.hits.length - 1, 0));
+      state.win.classList.toggle("has-rows", state.hits.length > 0);
+      state.list.replaceChildren();
+      state.hits.forEach((hit, index) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "row" + (index === state.selected ? " selected" : "");
+        row.innerHTML = `<i class="kind">${icon(hit.kind)}</i><span class="copy"><span class="title"></span><span class="detail"></span></span>`;
+        row.querySelector(".title").textContent = hit.title;
+        row.querySelector(".detail").textContent = hit.detail;
+        row.addEventListener("mouseenter", () => {
+          state.selected = index;
+          paint(state);
+          state.input.focus();
+        });
+        state.list.append(row);
+      });
+    }
+
+    for (const state of windows) {
+      state.input.addEventListener("input", () => {
+        state.selected = 0;
+        paint(state);
+      });
+      state.input.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          state.selected = Math.min(state.selected + 1, state.hits.length - 1);
+          paint(state);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          state.selected = Math.max(state.selected - 1, 0);
+          paint(state);
+        } else if (event.key === "Escape") {
+          state.input.value = "";
+          state.selected = 0;
+          paint(state);
+        }
+      });
+      state.win.addEventListener("wheel", (event) => {
+        if (!state.hits.length) return;
+        event.preventDefault();
+        state.selected = Math.min(state.hits.length - 1, Math.max(0, state.selected + (event.deltaY > 0 ? 1 : -1)));
+        paint(state);
+      }, { passive: false });
+      paint(state);
+    }
+
+    const params = new URLSearchParams(location.search);
+    const preset = params.get("q") || "";
+    if (preset) {
+      for (const state of windows) {
+        state.input.value = preset;
+        paint(state);
+      }
+    }
+  </script>
+</body>
+</html>

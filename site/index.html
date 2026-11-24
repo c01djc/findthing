@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>findthing</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --signal: #ef4e32;
+      --paper: #f4f0e6;
+      --cream: #fffdf9;
+      --muted: #5c6578;
+      --line: #17203314;
+      --select: #f8e2da;
+      --night: #0f1626;
+      --sheet: #e6e0d4;
+      --hl-blue: #d6e4f5;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; overflow-anchor: none; }
+    body {
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    button, input { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+    .wrap { width: min(1160px, calc(100% - 32px)); margin: 0 auto; }
+    @media (max-width: 480px) { .wrap { width: calc(100% - 32px); } }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px 24px;
+      flex-wrap: wrap;
+      padding: 22px 0;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand img { width: 36px; height: 36px; }
+    .word { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.04em; line-height: 1; }
+    .word b, .markword b { color: var(--signal); font-weight: 650; }
+    .nav-links { display: flex; align-items: center; gap: 8px 18px; flex-wrap: wrap; }
+    .nav-links a { color: var(--ink); text-decoration: none; font-size: 14px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 13px;
+      border: 1.5px solid transparent;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 650;
+      cursor: pointer;
+      background: transparent;
+    }
+    .btn.ink { background: var(--ink); color: var(--paper); }
+    .btn.red { background: var(--signal); color: #fffdf9; }
+    .btn.line { border-color: #17203340; color: var(--ink); }
+    .gh, .star {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1.5px solid #17203340;
+      background: var(--cream);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+    .gh svg, .star svg { width: 16px; height: 16px; flex: none; }
+    .star-count { margin-left: 2px; padding-left: 8px; border-left: 1px solid #17203322; }
+    .star-count[hidden] { display: none; }
+    .nav-links .gh, .nav-links .star { min-height: 36px; padding: 0 12px; font-size: 14px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 560px);
+      gap: 36px;
+      align-items: start;
+      padding: 18px 0 64px;
+    }
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+    }
+    h1 {
+      margin: 0;
+      font-size: 60px;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1.05;
+    }
+    h1 b { color: var(--signal); font-weight: 650; }
+    .lede { margin: 16px 0 0; max-width: 34em; color: var(--muted); font-size: 17px; line-height: 1.65; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px 28px;
+      margin: 22px 0 0;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+    .stats strong { display: block; font-size: 22px; letter-spacing: -0.03em; }
+    .stats span { color: var(--muted); font-size: 13px; }
+    .stats a { color: var(--ink); font-weight: 650; }
+    .stats .hotlink { color: var(--signal); font-weight: 650; }
+    .fine { margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+
+    .demo-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+    .themes, .switchish {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 4px;
+      background: rgba(255, 253, 249, 0.8);
+      border: 1px solid #1720331a;
+      border-radius: 12px;
+    }
+    .themes button, .switchish button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 9px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .themes button[aria-pressed="true"],
+    .switchish button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .tries { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .tries button {
+      border: 1px solid #17203322;
+      background: var(--cream);
+      border-radius: 999px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+
+    .stage { position: relative; }
+    .launcher {
+      width: min(612px, 100%);
+      --bg: #f4f0e6;
+      --fg: #172033;
+      --muted: #5c6578;
+      --detail-on-color: #5c6578;
+      --card: #fffdf9;
+      --select: #f8e2da;
+      --hover: #1720330c;
+      --line: #17203312;
+      --search-line: #17203314;
+      --placeholder: #17203355;
+      --radius: 22px;
+      --search-h: 48px;
+      --search-r: 16px;
+      --row-h: 48px;
+      --row-r: 12px;
+      --pad: 18px;
+      --gap: 12px;
+      --title: 15px;
+      --title-on: 20px;
+      --detail: 12px;
+      --detail-on: 15px;
+      --head: 28px;
+      --logo: 26px;
+      --word: 18px;
+      --hint-gap: 12px;
+      color: var(--fg);
+    }
+    .launcher[data-theme="field"] { --pad: 18px; }
+    .launcher[data-theme="ink"] {
+      --bg: #172033;
+      --fg: #f4f0e6;
+      --muted: #f4f0e69e;
+      --detail-on-color: #fffdf9c6;
+      --card: #f4f0e610;
+      --select: #ef4e3328;
+      --hover: #f4f0e614;
+      --line: #f4f0e614;
+      --search-line: #f4f0e61f;
+      --placeholder: #f4f0e666;
+    }
+    .launcher[data-theme="split"] {
+      width: min(560px, 100%);
+      --bg: transparent;
+      --radius: 0px;
+      --search-h: 54px;
+      --search-r: 18px;
+      --pad: 0px;
+      --gap: 10px;
+      --hint-gap: 4px;
+    }
+    .launcher[data-theme="ledger"] {
+      --radius: 16px;
+      --search-h: 40px;
+      --search-r: 10px;
+      --row-h: 36px;
+      --row-r: 8px;
+      --pad: 12px;
+      --gap: 8px;
+      --title: 14px;
+      --title-on: 18px;
+      --head: 22px;
+      --logo: 20px;
+      --word: 15px;
+      --hint-gap: 8px;
+    }
+    .shell {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 22px #17203328;
+      padding: var(--pad);
+      overflow: hidden;
+      transition: height 160ms ease-out, background-color 200ms ease-out, border-color 200ms ease-out;
+    }
+    .launcher[data-theme="split"] .shell { overflow: visible; background: transparent; border: 0; box-shadow: none; }
+    .head, .search, .row, .hints, .cap-row { display: flex; align-items: center; }
+    .head { height: var(--head); gap: 8px; }
+    .launcher[data-theme="field"] .head, .launcher[data-theme="split"] .head { display: none; }
+    .mark { width: var(--logo); height: var(--logo); flex: none; }
+    .wordmark { font-size: var(--word); font-weight: 600; }
+    .wordmark b { color: var(--signal); font-weight: 600; }
+    .search {
+      position: relative;
+      height: var(--search-h);
+      margin-top: var(--gap);
+      padding: 0 16px;
+      gap: 8px;
+      background: var(--card);
+      border: 1.5px solid var(--search-line);
+      border-radius: var(--search-r);
+    }
+    .launcher[data-theme="field"] .search, .launcher[data-theme="split"] .search { margin-top: 0; padding-left: 44px; }
+    .launcher[data-theme="split"] .search { background: var(--paper); color: var(--ink); border: 0; box-shadow: 0 6px 16px #17203328; }
+    .search:focus-within { border-color: var(--signal); }
+    .launcher[data-theme="split"] .search:focus-within { box-shadow: 0 6px 16px #17203328, inset 0 0 0 1.5px var(--signal); }
+    .field-logo { display: none; position: absolute; left: 12px; top: 50%; width: 22px; height: 22px; transform: translateY(-50%); }
+    .launcher[data-theme="field"] .field-logo, .launcher[data-theme="split"] .field-logo { display: block; }
+    .search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 16px; }
+    .launcher[data-theme="ledger"] .search input { font-size: 15px; }
+    .search input::placeholder { color: var(--placeholder); }
+    .index-note { display: none; position: absolute; right: 12px; top: 0; height: 100%; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .launcher.indexing .index-note { display: flex; }
+    .launcher.indexing .search input { padding-right: 72px; }
+    .launcher.indexing .search input:placeholder-shown { padding-right: 196px; }
+    .launcher.indexing .search input::placeholder { color: transparent; }
+    .ring { position: relative; width: 14px; height: 14px; flex: none; }
+    .ring i { position: absolute; left: 5.5px; top: 5.5px; width: 3px; height: 3px; border-radius: 50%; background: #17203329; }
+    .ring i:nth-child(1) { transform: translateY(-4.5px); }
+    .ring i:nth-child(2) { transform: rotate(45deg) translateY(-4.5px); }
+    .ring i:nth-child(3) { transform: rotate(90deg) translateY(-4.5px); }
+    .ring i:nth-child(4) { transform: rotate(135deg) translateY(-4.5px); }
+    .ring i:nth-child(5) { transform: rotate(180deg) translateY(-4.5px); }
+    .ring i:nth-child(6) { transform: rotate(225deg) translateY(-4.5px); }
+    .ring i:nth-child(7) { transform: rotate(270deg) translateY(-4.5px); }
+    .ring i:nth-child(8) { transform: rotate(315deg) translateY(-4.5px); }
+    .ring i { animation: dot 720ms linear infinite; }
+    .ring i:nth-child(2) { animation-delay: -90ms; }
+    .ring i:nth-child(3) { animation-delay: -180ms; }
+    .ring i:nth-child(4) { animation-delay: -270ms; }
+    .ring i:nth-child(5) { animation-delay: -360ms; }
+    .ring i:nth-child(6) { animation-delay: -450ms; }
+    .ring i:nth-child(7) { animation-delay: -540ms; }
+    .ring i:nth-child(8) { animation-delay: -630ms; }
+    .launcher[data-theme="ink"] .ring i { background: #f4f0e655; }
+    @keyframes dot { 0%, 12% { background: #ef4e32; } 12.5%, 100% { background: #17203329; } }
+    .launcher[data-theme="ink"] .ring i { animation-name: dot-ink; }
+    @keyframes dot-ink { 0%, 12% { background: #ef4e32; } 12.5%, 100% { background: #f4f0e655; } }
+    .sheet { margin-top: var(--gap); }
+    .launcher[data-theme="split"] .sheet { margin-top: 10px; padding: 8px; background: var(--paper); color: var(--ink); border-radius: 18px; box-shadow: 0 6px 16px #17203324; }
+    .launcher[data-theme="split"] .sheet .hints { color: #5c6578; }
+    .results { max-height: calc(8 * (var(--row-h) + 2px)); overflow: auto; }
+    .launcher[data-theme="split"] .results { max-height: calc(8 * 50px); }
+    .row { width: 100%; height: var(--row-h); margin-top: 2px; padding: 0 12px 0 10px; gap: 10px; border: 0; border-radius: var(--row-r); background: transparent; text-align: left; cursor: pointer; }
+    .row:first-child { margin-top: 0; }
+    .row.selected, .row:hover { background: var(--select); }
+    .kind { width: 18px; height: 18px; flex: none; }
+    .kind svg { display: block; width: 18px; height: 18px; }
+    .copy { min-width: 0; flex: 1; }
+    .launcher[data-theme="ledger"] .copy { display: flex; align-items: center; gap: 12px; }
+    .title, .detail { display: block; overflow: hidden; white-space: nowrap; }
+    .title { font-size: var(--title); line-height: 1.2; }
+    .row.selected .title, .row:hover .title { font-size: var(--title-on); }
+    .title em { font-style: normal; color: var(--signal); }
+    .detail { margin-top: 1px; color: var(--muted); font-size: var(--detail); text-overflow: ellipsis; }
+    .row.selected .detail, .row:hover .detail { color: var(--detail-on-color); font-size: var(--detail-on); }
+    .launcher[data-theme="ledger"] .detail { margin-top: 0; flex: 1; }
+    .hints { gap: 16px; min-height: 18px; margin-top: var(--hint-gap); color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+    .miss { margin: 0; height: 30px; line-height: 30px; text-align: center; color: var(--placeholder); font-size: 12px; }
+    .launcher[data-theme="ledger"] .miss { height: 26px; line-height: 26px; }
+    .launcher[data-theme="split"] .miss { height: 28px; line-height: 28px; }
+    .launcher[data-theme="split"] .hints { margin: 4px 4px 2px; }
+    .guide, .summon { display: flex; align-items: center; gap: 6px; }
+    .guide .keys, .summon { display: flex; gap: 3px; }
+    .summon { margin-left: auto; gap: 5px; }
+    .cap { min-width: 18px; height: 18px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center; border-radius: 5px; border: 1px solid #1720331c; background: #fffdf9; color: var(--ink); font-size: 11px; line-height: 1; }
+    .launcher[data-theme="ink"] .cap { border-color: #f4f0e638; background: #f4f0e614; color: #f4f0e6; }
+    .cap.solid { border: 0; background: #172033; color: #f4f0e6; }
+    .launcher[data-theme="ink"] .cap.solid { background: #f4f0e6; color: #172033; }
+    .hidden { display: none !important; }
+
+    .menu { position: absolute; z-index: 5; width: 188px; padding: 6px; background: #fffdf9; border: 1.5px solid #17203338; border-radius: 16px; box-shadow: 0 6px 16px #17203328; }
+    .launcher[data-theme="ledger"] ~ .menu { border-radius: 10px; }
+    .launcher[data-theme="split"] ~ .menu { border-radius: 18px; }
+    .menu button { display: block; width: 100%; height: 32px; margin-top: 2px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; text-align: left; cursor: pointer; font-size: 14px; }
+    .menu button:first-child { margin-top: 0; }
+    .launcher[data-theme="ledger"] ~ .menu button { border-radius: 6px; }
+    .launcher[data-theme="split"] ~ .menu button { border-radius: 12px; }
+    .menu button:hover { background: #f8e2da; }
+    .menu hr { height: 1px; margin: 4px 8px; border: 0; background: #17203314; }
+    .menu.ink { background: #243044; border-color: #f4f0e666; }
+    .menu.ink button { color: #f4f0e6; }
+    .menu.ink button:hover { background: #ef4e3328; }
+    .menu.ink hr { background: #f4f0e61f; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--paper); border-radius: 999px; padding: 8px 14px; font-size: 13px; z-index: 8; max-width: calc(100% - 32px); }
+
+    .section { padding: 28px 0 56px; }
+    h2 { margin: 0; font-size: clamp(32px, 4vw, 44px); letter-spacing: -0.04em; line-height: 1.15; font-weight: 650; }
+    .sub { margin: 8px 0 0; color: var(--muted); font-size: 16px; }
+    .keygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 22px; }
+    .keycard { background: var(--cream); border-radius: 20px; padding: 18px 18px 20px; box-shadow: 0 8px 22px #17203314; }
+    .chord { display: flex; align-items: center; gap: 8px; min-height: 84px; }
+    .bigcap { min-width: 72px; height: 72px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: var(--ink); color: var(--paper); font-size: 18px; font-weight: 650; box-shadow: 0 5px 0 #0c1220; }
+    .bigcap.wide { min-width: 108px; }
+    .bigcap.signal { background: var(--signal); color: #fffdf9; box-shadow: 0 5px 0 #b4331d; }
+    .plus { color: var(--muted); font-size: 18px; }
+    .keycard h3 { margin: 8px 0 6px; font-size: 20px; }
+    .keycard h3 small { color: var(--muted); font-size: 13px; font-weight: 400; }
+    .keycard p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    .band { background: var(--ink); color: var(--paper); }
+    .band .wrap { display: grid; grid-template-columns: minmax(220px, 0.7fr) 1.3fr; gap: 28px; align-items: center; padding-top: 48px; padding-bottom: 48px; }
+    .band h2 { color: var(--paper); }
+    .band p { color: #f4f0e6c4; line-height: 1.6; }
+    .actgrid { display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 14px; margin-top: 22px; }
+    .act { background: var(--cream); border-radius: 20px; padding: 18px 20px 8px; box-shadow: 0 8px 22px #17203314; }
+    .act h3 { margin: 0 0 8px; font-size: 16px; }
+    .act ul { margin: 0; padding: 0; list-style: none; }
+    .act li { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .act span { color: var(--muted); text-align: right; }
+    .cmdgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .cmd { background: #ffffff10; border-radius: 14px; padding: 12px; min-height: 74px; }
+    .cmd b { display: block; font-size: 15px; }
+    .cmd code { color: var(--signal); font-family: "Cascadia Mono", Consolas, "Courier New", monospace; font-size: 13px; }
+
+    .split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(240px, 0.75fr); gap: 28px; align-items: center; }
+    .kicker { margin: 0 0 8px; color: var(--signal); font-size: 13px; font-weight: 650; letter-spacing: 0.08em; }
+    .split p { color: var(--muted); line-height: 1.7; }
+
+    .explorer { position: relative; background: #f7f5f2; border: 1px solid #17203314; border-radius: 12px; box-shadow: 0 18px 40px #1720331f; overflow: hidden; }
+    .explorer-bar { min-height: 42px; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: #fff; border-bottom: 1px solid #17203314; font-size: 13px; }
+    .explorer-bar strong { flex: none; }
+    .explorer-bar span { color: var(--muted); min-width: 0; }
+    .explorer-bar button { margin-left: auto; flex: none; height: 28px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--ink); color: var(--paper); cursor: pointer; }
+    .keyghost { position: absolute; left: 24px; top: 46%; z-index: 3; min-width: 28px; height: 28px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; background: #172033; color: #f4f0e6; font-size: 13px; pointer-events: none; animation: keypop 420ms ease-out; }
+    @keyframes keypop { from { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+    .files { height: 420px; overflow: auto; padding: 6px 8px 12px; }
+    .file { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 4px; font-size: 13px; }
+    .file.hit { background: var(--hl-blue); }
+    .file .name { min-width: 0; overflow: hidden; white-space: nowrap; }
+    .dock { position: absolute; right: 12px; bottom: 12px; width: min(544px, calc(100% - 24px)); padding: 4px; background: #f4f0e6; border: 1px solid #17203312; border-radius: 22px; box-shadow: 0 8px 22px #17203328; }
+    .dock-row { width: 100%; height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 8px; border: 0; border-radius: 12px; background: transparent; text-align: left; cursor: pointer; font-size: 14px; }
+    .dock-row.selected, .dock-row:hover { background: var(--hl-blue); }
+    .dock-name { min-width: 0; flex: 1; overflow: hidden; white-space: nowrap; }
+    .dock-size { flex: none; width: 82px; color: #5c6578; font-size: 12px; text-align: right; }
+    .dock-input { position: relative; display: block; height: 32px; margin-top: 4px; background: #fffdf9; border: 1.5px solid #17203314; border-radius: 16px; }
+    .dock-input:focus-within { border-color: var(--signal); }
+    .dock-input input { width: 100%; height: 100%; padding: 0 78px 0 10px; border: 0; outline: 0; background: transparent; font-size: 14px; }
+    .wm-find, .wm-thing { position: absolute; top: 11px; font-size: 10px; font-weight: 600; line-height: 1; pointer-events: none; }
+    .wm-find { right: 46px; color: #172033c4; }
+    .wm-thing { right: 14px; color: #ef4e32; }
+    .caret { display: none; position: absolute; top: 8px; left: calc(10px + var(--chars, 0) * 8px); width: 1px; height: 16px; background: #172033; animation: blink 1.05s steps(1) infinite; }
+    .explorer.playing .dock:not(.hidden) .caret { display: block; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .bench-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; flex-wrap: wrap; }
+    .tag { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--signal); color: #fffdf9; font-size: 13px; font-weight: 650; }
+    .spec { margin-top: 18px; background: var(--cream); border-radius: 20px; padding: 18px; box-shadow: 0 8px 22px #17203314; }
+    .spec table { width: 100%; border-collapse: collapse; }
+    .spec td { padding: 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .spec td:last-child { color: var(--muted); text-align: right; }
+    .figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+    .figure { border-radius: 16px; padding: 16px; background: var(--ink); color: var(--paper); min-height: 108px; }
+    .figure.hot { background: var(--signal); }
+    .figure strong { display: block; font-size: clamp(22px, 2.4vw, 30px); letter-spacing: -0.03em; }
+    .figure span { display: block; margin-top: 6px; font-size: 13px; color: #f4f0e6d0; }
+    .prose { color: var(--muted); line-height: 1.7; }
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .chart { background: var(--cream); border-radius: 20px; padding: 16px 18px 18px; box-shadow: 0 8px 22px #17203314; }
+    .chart h3 { margin: 0 0 12px; font-size: 16px; }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+    .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 99px; margin-right: 4px; }
+    .bar-row { display: grid; grid-template-columns: 92px 1fr auto; gap: 8px; align-items: center; margin-top: 8px; font-size: 13px; }
+    .track { height: 10px; background: #1720330e; border-radius: 99px; overflow: hidden; }
+    .fill { display: block; height: 100%; border-radius: 99px; }
+    .fill.ft { background: #ef4e32; }
+    .fill.ev { background: #172033; }
+    .fill.ls { background: #158a74; }
+    .note { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; margin-top: 12px; border-radius: 16px; background: var(--cream); box-shadow: 0 8px 22px #17203314; }
+    table.bench, table.detail { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    table.bench { min-width: 880px; }
+    table.bench th, table.bench td, table.detail th, table.detail td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 14px; }
+    table.bench td, table.detail td:nth-child(n+2) { text-align: right; }
+    table.detail td:first-child, table.detail th:first-child { text-align: left; }
+    table.bench th.ft, table.detail th.ft { color: var(--signal); }
+    table.bench .sep { border-left: 1px solid #17203322; }
+    table.detail small, table.bench small { color: var(--muted); font-size: 12px; }
+    .read { margin: 18px 0 0; padding-left: 18px; color: var(--ink); line-height: 1.7; }
+    .read li { margin: 6px 0; }
+
+    .trayband { background: var(--cream); }
+    .trayband .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; padding-top: 48px; padding-bottom: 48px; }
+    .points { margin: 14px 0 0; padding: 0; list-style: none; }
+    .points li { margin: 10px 0; line-height: 1.55; }
+    .points b { display: block; }
+    .points span { color: var(--muted); }
+    .tray-side { display: flex; align-items: center; gap: 16px; }
+    .tray { width: 232px; background: #fff; border-radius: 8px; box-shadow: 0 12px 32px #17203330; padding: 6px 0; }
+    .tray div { height: 34px; display: flex; align-items: center; padding: 0 12px 0 34px; position: relative; font-size: 14px; }
+    .tray .on { background: var(--select); }
+    .tray .tick::before { content: "✓"; position: absolute; left: 12px; }
+    .hintline { max-width: 180px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    .themeset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 18px; margin-top: 22px; }
+    .thumb p { margin: 10px 0 0; text-align: center; font-size: 15px; font-weight: 650; }
+    .thumb img { width: 100%; height: auto; }
+
+    .cta { margin-top: 12px; background: var(--signal); color: #fffdf9; border-radius: 28px; padding: 36px 32px; display: flex; justify-content: space-between; gap: 18px; align-items: center; flex-wrap: wrap; }
+    .cta h2 { color: #fffdf9; }
+    .cta p { margin: 8px 0 0; color: #fffdf9e0; }
+
+    .platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px; }
+    .os { display: flex; align-items: center; gap: 12px; background: var(--cream); border: 1px solid var(--line); border-radius: 20px; padding: 14px; text-decoration: none; min-height: 84px; }
+    .os.ready { border: 1.5px solid var(--signal); }
+    .os-icon { width: 46px; height: 46px; flex: none; display: grid; place-items: center; background: #fff; border: 1px solid #17203314; border-radius: 12px; box-shadow: 0 3px 8px #1720331f; }
+    .os-icon img { width: 30px; height: 30px; }
+    .os b { display: block; }
+    .os small { color: var(--muted); }
+    .os .pill { margin-left: auto; border-radius: 999px; padding: 6px 10px; font-size: 13px; font-weight: 650; background: #17203312; color: var(--muted); }
+    .os.ready .pill { background: var(--signal); color: #fffdf9; }
+    footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 28px 0 48px; color: var(--muted); font-size: 14px; }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 980px) {
+      h1 { font-size: 40px; }
+      .hero, .band .wrap, .split, .trayband .wrap, .charts { grid-template-columns: 1fr; }
+      .actgrid, .cmdgrid, .figures, .themeset { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .actgrid, .cmdgrid, .figures, .themeset { grid-template-columns: 1fr; }
+      .cta { padding: 24px 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .shell, .ring, .ring i, .caret, .keyghost { animation: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="brand" href="#top">
+        <img src="../brand/icon.svg" alt="" />
+        <p class="word">find<b>thing</b></p>
+      </a>
+      <nav class="nav-links" aria-label="页内">
+        <a href="#keys">快捷键</a>
+        <a href="#actions">右键</a>
+        <a href="#commands">命令</a>
+        <a href="#locate">文件夹定位</a>
+        <a href="#tray">设置</a>
+        <a href="#perf">性能</a>
+        <a class="gh" href="https://github.com/c01djc/findthing" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0"/></svg>
+          GitHub
+        </a>
+        <a class="star" href="https://github.com/c01djc/findthing" target="_blank" rel="noopener" aria-label="在 GitHub 上给 findthing 标星">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.2 9.9 5.6l4.8.4-3.7 3.1 1.1 4.7L8 11.4 3.9 13.8l1.1-4.7L1.3 6l4.8-.4z"/></svg>
+          Star
+          <span class="star-count" data-stars hidden></span>
+        </a>
+        <a class="btn ink" href="#download">免费下载</a>
+      </nav>
+    </header>
+
+    <section class="hero" id="top">
+      <div>
+        <p class="eyebrow">WINDOWS 文件搜索</p>
+        <h1>记得名字，<br>就<b>找得到</b>。</h1>
+        <p class="lede">按下快捷键，敲几个字，回车打开文件；按 Ctrl Enter，直接跳到它所在的文件夹。右键结果可以复制路径、移动或删除，命令也可以直接运行。只做找文件这一件事。</p>
+        <div class="hero-actions">
+          <a class="btn red" href="#download">下载 Windows 版</a>
+          <a class="btn line" href="#keys">看看怎么用</a>
+          <a class="gh" href="https://github.com/c01djc/findthing" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0"/></svg>
+            GitHub
+          </a>
+          <a class="star" href="https://github.com/c01djc/findthing" target="_blank" rel="noopener" aria-label="在 GitHub 上给 findthing 标星">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.2 9.9 5.6l4.8.4-3.7 3.1 1.1 4.7L8 11.4 3.9 13.8l1.1-4.7L1.3 6l4.8-.4z"/></svg>
+            Star
+            <span class="star-count" data-stars hidden></span>
+          </a>
+        </div>
+        <div class="stats">
+          <div><strong>6.8 秒</strong><span>建好 194 万条索引</span></div>
+          <div><strong>124 MB</strong><span>建完后主进程内存</span></div>
+          <div><strong class="hotlink">同机实测</strong><span><a href="#perf">看对照数据</a></span></div>
+        </div>
+        <p class="fine">[版本号] · [安装包大小] · [支持的系统版本]</p>
+      </div>
+
+      <div class="stage">
+        <div class="demo-tools">
+          <div class="themes" id="themes">
+            <button type="button" data-theme="paper" aria-pressed="true">素纸</button>
+            <button type="button" data-theme="field" aria-pressed="false">轻条</button>
+            <button type="button" data-theme="ink" aria-pressed="false">夜墨</button>
+            <button type="button" data-theme="split" aria-pressed="false">双笺</button>
+            <button type="button" data-theme="ledger" aria-pressed="false">细目</button>
+          </div>
+          <div class="switchish">
+            <button type="button" id="index-toggle" aria-pressed="false">模拟索引更新</button>
+          </div>
+        </div>
+        <section class="launcher" id="launcher" data-theme="paper">
+          <div class="shell">
+            <div class="head">
+              <img class="mark" src="../brand/icon.svg" alt="" />
+              <div class="wordmark">find<b>thing</b></div>
+            </div>
+            <label class="search">
+              <img class="field-logo" src="../brand/icon.svg" alt="" />
+              <input id="query" type="text" value="报告" placeholder="搜索文件名，或输入命令" autocomplete="off" spellcheck="false" aria-label="搜索文件名或命令" />
+              <span class="index-note"><span class="ring" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span id="index-label">正在更新索引，搜索会稍慢</span></span>
+            </label>
+            <div class="sheet" id="sheet">
+              <div class="results" id="results"></div>
+              <div class="hints" id="hints">
+                <span class="guide"><span class="keys"><i class="cap">Enter</i></span>打开</span>
+                <span class="guide"><span class="keys"><i class="cap">Ctrl</i><i class="cap">Enter</i></span>定位</span>
+                <span class="guide"><span class="keys"><i class="cap">Esc</i></span>关闭</span>
+                <span class="summon" title="默认呼出键，可改"><i class="cap solid">Alt</i><i class="cap solid">Space</i></span>
+              </div>
+            </div>
+            <p class="miss hidden" id="miss">没有匹配的文件</p>
+          </div>
+        </section>
+        <div class="tries">
+          <span>试试：</span>
+          <button type="button" data-try="ride">ride</button>
+          <button type="button" data-try="报告">报告</button>
+          <button type="button" data-try="gongyi">gongyi</button>
+          <button type="button" data-try="png">png</button>
+          <button type="button" data-try="env">env</button>
+          <button type="button" data-try="截图">截图</button>
+          <span>· 右键结果看菜单</span>
+        </div>
+        <div class="menu hidden" id="menu">
+          <button type="button" data-act="open">打开</button>
+          <button type="button" data-act="reveal">打开所在文件夹</button>
+          <hr />
+          <button type="button" data-act="copy">复制</button>
+          <button type="button" data-act="cut">剪切</button>
+          <button type="button" data-act="path">复制路径</button>
+          <button type="button" data-act="name">复制文件名</button>
+          <hr />
+          <button type="button" data-act="move">移动到…</button>
+          <button type="button" data-act="delete">删除</button>
+          <button type="button" data-act="run" hidden>运行</button>
+          <button type="button" data-act="copy-name" hidden>复制名称</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="section" id="keys">
+    <div class="wrap">
+      <h2>四个键，记住就够了。</h2>
+      <p class="sub">不用看教程。</p>
+      <div class="keygrid">
+        <article class="keycard">
+          <div class="chord" aria-hidden="true"><span class="bigcap signal">Alt</span><span class="plus">+</span><span class="bigcap signal wide">Space</span></div>
+          <h3>呼出 <small>默认，可改</small></h3>
+          <p>在哪个窗口里都能按，搜索框出现在屏幕正中。不顺手可以换。</p>
+        </article>
+        <article class="keycard">
+          <div class="chord" aria-hidden="true"><span class="bigcap">Enter</span></div>
+          <h3>打开</h3>
+          <p>打开文件，或运行命令。</p>
+        </article>
+        <article class="keycard">
+          <div class="chord" aria-hidden="true"><span class="bigcap">Ctrl</span><span class="plus">+</span><span class="bigcap">Enter</span></div>
+          <h3>定位</h3>
+          <p>不打开文件，直接去它所在的文件夹，并选中它。</p>
+        </article>
+        <article class="keycard">
+          <div class="chord" aria-hidden="true"><span class="bigcap">Esc</span></div>
+          <h3>收起</h3>
+          <p>不找了，按一下就收起。</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="actions">
+    <div class="wrap">
+      <h2>右键结果，当场处理。</h2>
+      <p class="sub">不用先打开文件夹。搜索演示里右键一条结果，就能看到同一套菜单。</p>
+      <div class="actgrid">
+        <article class="act">
+          <h3>文件和文件夹</h3>
+          <ul>
+            <li>打开<span>直接打开</span></li>
+            <li>打开所在文件夹<span>跳过去并选中</span></li>
+            <li>复制 / 剪切<span>按系统剪贴板处理</span></li>
+            <li>复制路径 / 复制文件名</li>
+            <li>移动到…</li>
+            <li>删除</li>
+          </ul>
+        </article>
+        <article class="act">
+          <h3>命令</h3>
+          <ul>
+            <li>运行<span>直接启动这个工具</span></li>
+            <li>复制名称</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="commands">
+    <div class="wrap">
+      <div>
+        <h2>常用的系统工具，<br>也能直接搜。</h2>
+        <p>中文、英文、缩写都认得：env 打开环境变量，wt 打开终端。</p>
+      </div>
+      <div class="cmdgrid">
+        <div class="cmd"><b>终端</b><code>wt</code></div>
+        <div class="cmd"><b>PowerShell</b><code>ps</code></div>
+        <div class="cmd"><b>命令提示符</b><code>cmd</code></div>
+        <div class="cmd"><b>环境变量</b><code>env · path</code></div>
+        <div class="cmd"><b>任务管理器</b><code>taskmgr</code></div>
+        <div class="cmd"><b>截图</b><code>snip</code></div>
+        <div class="cmd"><b>计算器</b><code>calc</code></div>
+        <div class="cmd"><b>回收站</b><code>recycle</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="locate">
+    <div class="wrap split">
+      <div class="explorer" id="explorer" tabindex="0">
+        <div class="explorer-bar">
+          <strong>下载</strong>
+          <span id="locate-note">演示会自己打字。点一下列表，再直接敲字母试试。</span>
+          <button type="button" id="replay">再看一遍</button>
+        </div>
+        <div class="files" id="files"></div>
+        <i class="keyghost hidden" id="keyghost" aria-hidden="true"></i>
+        <div class="dock hidden" id="dock">
+          <div class="dock-rows" id="dock-rows"></div>
+          <label class="dock-input">
+            <input id="dock-query" type="text" autocomplete="off" spellcheck="false" aria-label="在这个文件夹里定位" />
+            <i class="caret" aria-hidden="true"></i>
+            <span class="wm-find">find</span><span class="wm-thing">thing</span>
+          </label>
+        </div>
+      </div>
+      <div class="copy">
+        <p class="kicker">文件夹定位</p>
+        <h2>已经在文件夹里？<br>直接打字。</h2>
+        <p>在资源管理器里敲几个字母，右下角弹出匹配列表，上下键挑选，列表同步选中，按 Esc 收起。左边会自动演示，点一下列表就能自己试。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="env">
+    <div class="wrap" id="perf">
+      <div class="bench-head">
+        <div>
+          <h2>同一台电脑上的测试</h2>
+          <p class="prose">2026 年 11 月 11 日，在正在使用的这台电脑上，对 findthing 和另外两款文件搜索软件各做了一次建索引，并用同一批词测了搜索。下面是测到的数字。</p>
+        </div>
+        <span class="tag">同机实测</span>
+      </div>
+      <div class="spec">
+        <table>
+          <tbody>
+            <tr><td>Intel Core i7-12700</td><td>12 核 20 线程</td></tr>
+            <tr><td>64 GB</td><td>内存</td></tr>
+            <tr><td>Maxsun 1TB SSD</td><td>系统盘</td></tr>
+            <tr><td>Windows 11</td><td>索引了 C、D、E、F、G</td></tr>
+          </tbody>
+        </table>
+        <div class="figures">
+          <div class="figure hot"><strong>6.8 秒</strong><span>五块盘索引就绪 · CPU 6.4 秒</span></div>
+          <div class="figure"><strong>1,942,718</strong><span>索引条目</span></div>
+          <div class="figure"><strong>124 MB</strong><span>建完后主进程内存</span></div>
+          <div class="figure"><strong>75 MB</strong><span>索引文件</span></div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:36px">建索引</h2>
+      <p class="prose">从开始扫盘到索引可用的时间。三次都是清空或挪开旧库之后重做的。findthing 的索引线程优先级低于普通，6.8 秒是墙上时间，写完索引文件时进程已经用了 6.4 秒 CPU。</p>
+      <div class="charts">
+        <article class="chart">
+          <h3>索引就绪用时（越短越好）</h3>
+          <div class="legend"><span><i style="background:#ef4e32"></i>findthing</span><span><i style="background:#172033"></i>对照 A</span><span><i style="background:#158a74"></i>对照 B</span></div>
+          <div class="bar-row"><span>findthing</span><span class="track"><i class="fill ft" style="width:45%"></i></span><span>6.8 秒</span></div>
+          <div class="bar-row"><span>对照 A</span><span class="track"><i class="fill ev" style="width:100%"></i></span><span>15.0 秒</span></div>
+          <div class="bar-row"><span>对照 B</span><span class="track"><i class="fill ls" style="width:97%"></i></span><span>14.6 秒</span></div>
+        </article>
+        <article class="chart">
+          <h3>建完后主进程内存（越小越好）</h3>
+          <p class="note">不含另外的服务进程</p>
+          <div class="bar-row"><span>findthing</span><span class="track"><i class="fill ft" style="width:51.5%"></i></span><span>124 MB</span></div>
+          <div class="bar-row"><span>对照 A</span><span class="track"><i class="fill ev" style="width:100%"></i></span><span>241 MB</span></div>
+          <div class="bar-row"><span>对照 B</span><span class="track"><i class="fill ls" style="width:91.3%"></i></span><span>220 MB</span></div>
+        </article>
+      </div>
+      <div class="table-wrap">
+        <table class="detail">
+          <thead>
+            <tr><th>程序</th><th>索引就绪</th><th>条目</th><th>建完后主进程</th><th>索引文件</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>findthing</b><br><small>五块盘。不收录磁盘根目录下的 Windows、回收站、系统卷信息，也不收录 WinSxS、node_modules、.git 里面的内容</small></td>
+              <td>6.8 秒<br><small>CPU 6.4 秒</small></td>
+              <td>1,942,718</td>
+              <td>124 MB<br><small>写完那一刻 141 MB，私有内存 142 MB</small></td>
+              <td>75 MB</td>
+            </tr>
+            <tr>
+              <td><b>对照 A</b><br><small>它自己的建库计时是 15.025 秒。449,699 个文件夹，1,988,834 个文件</small></td>
+              <td>15.0 秒</td>
+              <td>2,438,533</td>
+              <td>241 MB<br><small>服务另占约 12 MB</small></td>
+              <td>77 MB</td>
+            </tr>
+            <tr>
+              <td><b>对照 B</b><br><small>五块盘都就绪 14.6 秒，快照写回磁盘 19.0 秒。C 1,634,172，D 105,495，E 148,126，F 327,259，G 223,369</small></td>
+              <td>14.6 秒<br><small>写回磁盘 19.0 秒</small></td>
+              <td>2,438,421</td>
+              <td>220 MB<br><small>服务和两个钩子进程另占约 26 MB</small></td>
+              <td>111 MB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="margin-top:40px">搜索</h2>
+      <p class="prose">每个词先查一次预热，再连续查 31 次，取中位时间。findthing 量的是程序内部排出前 80 条的时间，窗口还没画；单字母会在前 80 条排好后停。对照 A 走它自己的查询接口，每次都把匹配总数点清，再带回最多 80 条。对照 B 走本机接口，每次带回最多 80 条，并带上路径、大小和修改时间。没有结果的 zzzzqqqq，对照 A 也要 4.1 毫秒，对照 B 要 7.9 毫秒，这两列里各有一截固定开销。</p>
+      <div class="table-wrap">
+        <table class="bench">
+          <thead>
+            <tr>
+              <th>词</th>
+              <th class="ft">findthing 前 80 条</th>
+              <th class="ft">findthing 全部点清</th>
+              <th>对照 A</th>
+              <th>对照 B</th>
+              <th class="sep">findthing 命中</th>
+              <th>对照 A 命中</th>
+              <th>对照 B 命中</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>a</td><td>1.5 毫秒</td><td>22 毫秒</td><td>11.0 毫秒</td><td>84.9 毫秒</td><td class="sep">1,225,162</td><td>1,532,097</td><td>1,532,435</td></tr>
+            <tr><td>n</td><td>0.29 毫秒</td><td>20 毫秒</td><td>9.4 毫秒</td><td>74.2 毫秒</td><td class="sep">1,055,347</td><td>1,343,058</td><td>1,343,355</td></tr>
+            <tr><td>note</td><td>4.2 毫秒</td><td>21 毫秒</td><td>5.2 毫秒</td><td>11.0 毫秒</td><td class="sep">1,661</td><td>1,912</td><td>1,912</td></tr>
+            <tr><td>notepad</td><td>13.8 毫秒</td><td>10 毫秒</td><td>4.9 毫秒</td><td>9.1 毫秒</td><td class="sep">60</td><td>180</td><td>180</td></tr>
+            <tr><td>chrome</td><td>5.8 毫秒</td><td>8.4 毫秒</td><td>5.1 毫秒</td><td>9.8 毫秒</td><td class="sep">1,598</td><td>1,833</td><td>1,833</td></tr>
+            <tr><td>findthing</td><td>5.3 毫秒</td><td>3.5 毫秒</td><td>4.5 毫秒</td><td>8.8 毫秒</td><td class="sep">355</td><td>186</td><td>186</td></tr>
+            <tr><td>微信</td><td>0.02 毫秒</td><td>0.002 毫秒</td><td>8.1 毫秒</td><td>6.6 毫秒</td><td class="sep">53</td><td>65</td><td>65</td></tr>
+            <tr><td>pdf</td><td>4.6 毫秒</td><td>8.6 毫秒</td><td>5.2 毫秒</td><td>10.2 毫秒</td><td class="sep">2,660</td><td>3,768</td><td>3,768</td></tr>
+            <tr><td>zzzzqqqq</td><td>0.63 毫秒</td><td>0.43 毫秒</td><td>4.1 毫秒</td><td>7.9 毫秒</td><td class="sep">0</td><td>0</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h2 style="margin-top:36px;font-size:28px">这些数字怎么读</h2>
+      <ul class="read">
+        <li>建索引这一项，findthing 用时更短，建完后占用的内存也更低。它少收了大约 50 万条，所以条目和另外两个不是同一批文件。</li>
+        <li>只打一个字母时，findthing 排好前 80 条就停，所以 a 是 1.5 毫秒、n 是 0.29 毫秒。把全部匹配都点清时，a 要 22 毫秒，对照 A 是 11.0 毫秒，对照 B 是 84.9 毫秒。</li>
+        <li>notepad 这种具体名字，对照 A 4.9 毫秒，对照 B 9.1 毫秒，findthing 13.8 毫秒。note、chrome、pdf 都在几毫秒到十几毫秒之间。</li>
+        <li>微信只有几十条，findthing 0.02 毫秒，对照 B 6.6 毫秒，对照 A 8.1 毫秒。</li>
+        <li>对照 A 和对照 B 的命中数几乎相同。findthing 较少，是因为上面说的那些目录没有收进索引。findthing 这个词本身，findthing 数到 355 条，另外两款数到 186 条。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="trayband" id="tray">
+    <div class="wrap">
+      <div>
+        <p class="kicker" style="color:var(--muted)">托盘菜单</p>
+        <h2>平时缩在托盘里，<br>设置都在右键菜单。</h2>
+        <ul class="points">
+          <li><b>设置呼出快捷键</b><span>Alt Space 和输入法撞了？换一组顺手的。</span></li>
+          <li><b>窗口外观</b><span>五套外观，切换立刻生效。</span></li>
+          <li><b>开机启动</b><span>勾上后，开机就能用。</span></li>
+        </ul>
+      </div>
+      <div class="tray-side">
+        <div class="tray" aria-hidden="true">
+          <div>显示搜索</div>
+          <div>窗口外观<span style="margin-left:auto;color:#5c6578">›</span></div>
+          <div class="on">设置呼出快捷键</div>
+          <div class="tick">开机启动</div>
+          <div>退出</div>
+        </div>
+        <p class="hintline">比如从 Alt Space 换成 Ctrl Shift F。只是举例，不是推荐组合。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>五套外观，挑顺眼的。</h2>
+      <p class="sub">同一条搜索，五种窗口。托盘菜单「窗口外观」里切换，马上生效。</p>
+      <div class="themeset">
+        <article class="thumb"><img src="themes/paper.png" alt="素纸：暖白窗口，上方有 findthing 标题" /><p>素纸</p></article>
+        <article class="thumb"><img src="themes/field.png" alt="轻条：去掉标题，图标放在搜索框里" /><p>轻条</p></article>
+        <article class="thumb"><img src="themes/ink.png" alt="夜墨：深色窗口" /><p>夜墨</p></article>
+        <article class="thumb"><img src="themes/split.png" alt="双笺：搜索框和结果分成两张纸" /><p>双笺</p></article>
+        <article class="thumb"><img src="themes/ledger.png" alt="细目：文件名和路径排在同一行" /><p>细目</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="download">
+    <div class="wrap">
+      <div class="cta">
+        <div>
+          <h2>少翻几次文件夹。</h2>
+          <p>装好后按 Alt Space 试试，不顺手就换个快捷键。</p>
+        </div>
+        <a class="btn ink" href="#download">下载 Windows 版</a>
+      </div>
+      <div class="platforms">
+        <a class="os ready" href="#download">
+          <span class="os-icon"><img src="../brand/os-windows.svg" alt="" /></span>
+          <span><b>Windows</b><small>安装包 · [版本号] · [大小]</small></span>
+          <span class="pill">下载</span>
+        </a>
+        <div class="os">
+          <span class="os-icon"><img src="../brand/os-linux.svg" alt="" /></span>
+          <span><b>Linux</b><small>即将提供</small></span>
+          <span class="pill">即将推出</span>
+        </div>
+        <div class="os">
+          <span class="os-icon"><img src="../brand/os-macos.svg" alt="" /></span>
+          <span><b>macOS</b><small>即将提供</small></span>
+          <span class="pill">即将推出</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <footer>
+      <span class="markword">find<b>thing</b> · <a href="https://github.com/c01djc/findthing" target="_blank" rel="noopener">github.com/c01djc/findthing</a> · [作者 / 联系方式]</span>
+      <span>[更新日志] · [反馈]</span>
+    </footer>
+  </div>
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <script>
+    const commands = [
+      ["终端", ["终端", "wt", "terminal"], "打开 Windows 终端。适合日常输入命令，一个窗口里可以开多个标签。"],
+      ["命令提示符", ["命令提示符", "cmd", "command"], "打开传统命令提示符。适合运行 .bat 和较早的系统命令。"],
+      ["PowerShell", ["powershell", "ps"], "打开 PowerShell。适合跑脚本，也适合管理文件和系统。"],
+      ["环境变量", ["环境变量", "env", "path"], "打开环境变量窗口，用来查看或修改 Path。"],
+      ["设置", ["设置", "settings"], "打开 Windows 设置。"],
+      ["回收站", ["回收站", "recycle"], "打开回收站。"],
+      ["任务管理器", ["任务管理器", "taskmgr"], "打开任务管理器，查看正在运行的程序。"],
+      ["记事本", ["记事本", "notepad"], "打开记事本。"],
+      ["计算器", ["计算器", "calc", "calculator"], "打开计算器。"],
+      ["截图", ["截图", "snip", "screenshot"], "打开截图，框选屏幕上的一块区域。"]
+    ];
+
+    const files = [
+      ["leetaohua.jpg", "C:\\Users\\jc\\Pictures", "138 KB"],
+      ["ridecircle_final_v49.zip", "C:\\Users\\jc\\Documents", "31 KB"],
+      ["ridecircle_final_v48.zip", "C:\\Users\\jc\\Documents", "30 KB"],
+      ["公共安全智防系统性能报告.docx", "C:\\用户\\下载", "2.4 MB"],
+      ["gongyixunqin_RHYKM.zip", "C:\\用户\\下载", "18 MB"],
+      ["gongyixunqin_RHYKM", "C:\\用户\\下载", ""],
+      ["清明祭雨.html", "C:\\用户\\下载", "86 KB"],
+      ["年度报告.docx", "D:\\工作\\归档", "640 KB"],
+      ["报告-年度.docx", "D:\\工作\\归档", "512 KB"],
+      ["未标题-1.png", "C:\\用户\\图片", "1.2 MB"],
+      ["tree.png", "C:\\用户\\图片", "840 KB"],
+      ["新建 XLSX 工作表.xlsx", "C:\\用户\\文档", "24 KB"]
+    ];
+
+    const folder = [
+      ["batch_upload.sh", "4 KB"],
+      ["emlog_gray_mode_6dKps.zip", "1.1 MB"],
+      ["gemini-code-1793371845991.html", "96 KB"],
+      ["gongyixunqin_RHYKM.zip", "18 MB"],
+      ["main_banner_behind.png", "420 KB"],
+      ["ridecircle_final_v40.zip", "24 KB"],
+      ["ridecircle_final_v44.zip", "28 KB"],
+      ["ridecircle_final_v47_final.zip", "31 KB"],
+      ["ridecircle_final_v48.zip", "30 KB"],
+      ["ridecircle_final_v49.zip", "31 KB"],
+      ["trackbook.zip", "6.2 MB"],
+      ["tree.png", "840 KB"],
+      ["万圣夜惊魂.html", "74 KB"],
+      ["中秋月夜.html", "81 KB"],
+      ["公共安全智防系统性能报告.docx", "2.4 MB"],
+      ["清明祭雨.html", "86 KB"]
+    ];
+
+    const launcher = document.querySelector("#launcher");
+    const shell = launcher.querySelector(".shell");
+    const queryInput = document.querySelector("#query");
+    const indexLabel = document.querySelector("#index-label");
+    const results = document.querySelector("#results");
+    const sheet = document.querySelector("#sheet");
+    const miss = document.querySelector("#miss");
+    const hints = document.querySelector("#hints");
+    const explorer = document.querySelector("#explorer");
+    const filesBox = document.querySelector("#files");
+    const dock = document.querySelector("#dock");
+    const dockRows = document.querySelector("#dock-rows");
+    const dockQuery = document.querySelector("#dock-query");
+    const toast = document.querySelector("#toast");
+    const themes = document.querySelector("#themes");
+    const menu = document.querySelector("#menu");
+    const keyghost = document.querySelector("#keyghost");
+    const locateNote = document.querySelector("#locate-note");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let indexing = false;
+    let selected = 0;
+    let hits = [];
+    let dockFrom = 0;
+    let dockPick = 0;
+    let dockHits = [];
+    let toastTimer = 0;
+    let fitted = false;
+    let hadRows = false;
+    let reelToken = 0;
+    let playing = false;
+    const page = 9;
+
+    function esc(text) {
+      return text.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+    }
+
+    function titleHtml(title, query) {
+      const needle = query.trim();
+      const at = needle ? title.toLowerCase().indexOf(needle.toLowerCase()) : -1;
+      if (at < 0) return esc(title);
+      const end = at + needle.length;
+      return esc(title.slice(0, at)) + "<em>" + esc(title.slice(at, end)) + "</em>" + esc(title.slice(end));
+    }
+
+    function fileType(name) {
+      const dot = name.lastIndexOf(".");
+      if (dot <= 0) return "dir";
+      const ext = name.slice(dot + 1).toLowerCase();
+      if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "zip";
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"].includes(ext)) return "image";
+      if (["html", "htm"].includes(ext)) return "html";
+      if (["sh", "bat", "cmd", "ps1", "js", "ts", "py", "rs", "css"].includes(ext)) return "code";
+      if (["doc", "docx", "txt", "md", "rtf"].includes(ext)) return "doc";
+      if (["xls", "xlsx", "csv"].includes(ext)) return "sheet";
+      if (ext === "pdf") return "pdf";
+      return "file";
+    }
+
+    function typeIcon(kind, onDark) {
+      const glyph = onDark ? "#F4F0E6" : "#172033";
+      const hole = onDark ? "#172033" : "#F4F0E6";
+      const icons = {
+        command: '<rect x="1" y="1" width="16" height="16" rx="4" fill="#EF4E32"/>',
+        dir: `<path fill="${glyph}" d="M1 5h5l1.4 1.6H17V15H1z"/><path fill="${hole}" d="M2.2 8.2h13.6V13.6H2.2z"/>`,
+        zip: `<rect x="2" y="1.5" width="14" height="15" rx="2" fill="${glyph}"/><path fill="#EF4E32" d="M8 1.5h2V3.4H8zm0 2.8h2v1.9H8zM8 7.1h2v1.9H8zm0 2.8h2V11.8H8z"/><path fill="${hole}" d="M8 13.2h2v2H8z"/>`,
+        image: `<rect x="1" y="3" width="16" height="12.5" rx="2" fill="${glyph}"/><circle cx="5.6" cy="7.2" r="1.6" fill="#EF4E32"/><path fill="${hole}" d="M2 12.2 6 8.8 9.2 11.2 12.2 8.8 16 12.6v1.6c0 .4-.4.8-.8.8H2.8c-.4 0-.8-.4-.8-.8V12.2z"/>`,
+        html: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="none" stroke="${hole}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M6.4 8.2 8.6 10.6 6.4 13M11.8 8.2 9.6 10.6 11.8 13"/>`,
+        code: `<rect x="1" y="2.5" width="16" height="13" rx="2" fill="${glyph}"/><path fill="none" stroke="${hole}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M4.2 7.2 6.8 9.6 4.2 12"/><path fill="#EF4E32" d="M8.6 11.4h5v1.6h-5z"/>`,
+        doc: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M5 8.2h7.2v1.35H5zm0 2.5h5v1.35H5z"/>`,
+        sheet: `<rect x="1.5" y="1.5" width="15" height="15" rx="2" fill="${glyph}"/><path fill="#EF4E32" d="M1.5 1.5h15V5.2h-15z"/><path stroke="${hole}" stroke-width="1.15" d="M1.5 8.6h15M1.5 12.2h15M7 5.2v11.3M12 5.2v11.3"/>`,
+        pdf: `<path fill="#EF4E32" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M5.2 8.4h2.5c1.15 0 1.9.6 1.9 1.5s-.75 1.5-1.9 1.5H6.4V13H5.2zm1.2 1.9h1.1c.45 0 .75-.22.75-.55s-.3-.55-.75-.55H6.4z"/>`,
+        file: `<path fill="${glyph}" d="M3 1.2h7.4L15.2 6v10.6H3z"/><path fill="${hole}" d="M10.4 1.2V5c0 .5.4.9.9.9h3.9"/>`
+      };
+      return `<svg viewBox="0 0 18 18" aria-hidden="true">${icons[kind] || icons.file}</svg>`;
+    }
+
+    function scoreName(name, needle) {
+      const text = name.toLowerCase();
+      const query = needle.toLowerCase();
+      if (!query || !text.includes(query)) return 0;
+      if (text === query) return 2000;
+      if (text.startsWith(query)) return 1400 - Math.min(text.length - query.length, 500);
+      return 760;
+    }
+
+    function commandScore(command, needle) {
+      const query = needle.toLowerCase();
+      let best = 0;
+      for (const alias of command[1]) {
+        const text = alias.toLowerCase();
+        if (text === query) best = Math.max(best, 1600);
+        else if (text.startsWith(query)) best = Math.max(best, 980);
+        else if (text.includes(query)) best = Math.max(best, 760);
+      }
+      if (command[0].includes(needle)) best = Math.max(best, 820);
+      return best;
+    }
+
+    function search(needle) {
+      const query = needle.trim();
+      if (!query) return [];
+      const found = [];
+      for (const file of files) {
+        const score = scoreName(file[0], query);
+        if (!score) continue;
+        const kind = file[2] ? fileType(file[0]) : "dir";
+        found.push({ score, kind, title: file[0], detail: file[1], target: file[0] });
+      }
+      for (const command of commands) {
+        const score = commandScore(command, query);
+        if (score) found.push({ score, kind: "command", title: command[0], detail: command[2], target: command[0] });
+      }
+      found.sort((a, b) => b.score - a.score || a.title.length - b.title.length);
+      return found.slice(0, 40);
+    }
+
+    function fitShell() {
+      const animate = fitted;
+      const prev = shell.getBoundingClientRect().height;
+      shell.style.transition = "none";
+      shell.style.height = "auto";
+      const next = shell.getBoundingClientRect().height;
+      shell.style.height = prev + "px";
+      if (!animate || Math.abs(next - prev) < 1) {
+        shell.style.height = next + "px";
+        fitted = true;
+        requestAnimationFrame(() => { shell.style.transition = ""; });
+        return;
+      }
+      void shell.offsetHeight;
+      shell.style.transition = "";
+      void shell.offsetHeight;
+      shell.style.height = next + "px";
+      fitted = true;
+    }
+
+    function renderResults() {
+      hits = search(queryInput.value);
+      selected = Math.min(selected, Math.max(hits.length - 1, 0));
+      const has = hits.length > 0;
+      const empty = queryInput.value.trim() === "";
+      sheet.classList.toggle("hidden", !has);
+      hints.classList.toggle("hidden", !has);
+      miss.classList.toggle("hidden", has || empty);
+      results.replaceChildren();
+      hits.forEach((hit, index) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "row" + (index === selected ? " selected" : "");
+        row.innerHTML = '<i class="kind"></i><span class="copy"><span class="title"></span><span class="detail"></span></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(hit.kind, launcher.dataset.theme === "ink");
+        row.querySelector(".title").innerHTML = titleHtml(hit.title, queryInput.value);
+        row.querySelector(".detail").textContent = hit.detail;
+        row.addEventListener("mouseenter", () => { selected = index; paintSelection(); });
+        row.addEventListener("click", () => activate(false));
+        results.append(row);
+      });
+      revealIn(results, results.children[selected]);
+      hadRows = has;
+      fitShell();
+    }
+
+    function paintSelection() {
+      [...results.children].forEach((row, index) => row.classList.toggle("selected", index === selected));
+    }
+
+    function activate(reveal) {
+      const hit = hits[selected];
+      if (!hit) return;
+      if (reveal) showToast("已定位到文件夹 · " + hit.title);
+      else if (hit.kind === "command") showToast("已运行 · " + hit.title);
+      else showToast("已打开 · " + hit.title);
+    }
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add("hidden"), 1600);
+    }
+
+    function paintIndex() {
+      launcher.classList.toggle("indexing", indexing);
+      document.querySelector("#index-toggle").setAttribute("aria-pressed", String(indexing));
+      indexLabel.textContent = queryInput.value.trim() === "" ? "正在更新索引，搜索会稍慢" : "更新中";
+    }
+
+    function folderMatches(needle) {
+      const query = needle.trim().toLowerCase();
+      if (!query) return [];
+      const prefix = [];
+      const rest = [];
+      folder.forEach((item, index) => {
+        const name = item[0].toLowerCase();
+        if (name.startsWith(query)) prefix.push(index);
+        else if (name.includes(query)) rest.push(index);
+      });
+      return prefix.concat(rest).slice(0, 80);
+    }
+
+    function paintLocate() {
+      [...filesBox.children].forEach((row, index) => row.classList.toggle("hit", index === dockHits[dockPick]));
+      [...dockRows.children].forEach((row, offset) => row.classList.toggle("selected", dockFrom + offset === dockPick));
+      revealIn(filesBox, filesBox.children[dockHits[dockPick]]);
+    }
+
+    function revealIn(container, child) {
+      if (!child) return;
+      const box = container.getBoundingClientRect();
+      const row = child.getBoundingClientRect();
+      if (row.top < box.top) container.scrollTop -= box.top - row.top;
+      else if (row.bottom > box.bottom) container.scrollTop += row.bottom - box.bottom;
+    }
+
+    function renderFolder() {
+      const query = dockQuery.value;
+      filesBox.replaceChildren();
+      folder.forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "file" + (index === dockHits[dockPick] ? " hit" : "");
+        row.innerHTML = '<i class="kind"></i><span class="name"></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(fileType(item[0]));
+        row.querySelector(".name").textContent = item[0];
+        row.addEventListener("click", () => stopReel());
+        filesBox.append(row);
+      });
+      revealIn(filesBox, filesBox.children[dockHits[dockPick]]);
+      renderDock(query);
+    }
+
+    function renderDock(query) {
+      const open = query.trim() !== "";
+      dock.classList.toggle("hidden", !open);
+      if (!open) {
+        dockRows.replaceChildren();
+        return;
+      }
+      dock.style.setProperty("--chars", String(query.trim().length));
+      dockRows.replaceChildren();
+      dockHits.slice(dockFrom, dockFrom + page).forEach((index, offset) => {
+        const item = folder[index];
+        const absolute = dockFrom + offset;
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "dock-row" + (absolute === dockPick ? " selected" : "");
+        row.innerHTML = '<i class="kind"></i><span class="dock-name"></span><span class="dock-size"></span>';
+        row.querySelector(".kind").innerHTML = typeIcon(fileType(item[0]));
+        row.querySelector(".dock-name").textContent = item[0];
+        row.querySelector(".dock-size").textContent = item[1];
+        row.addEventListener("mouseenter", () => { dockPick = absolute; paintLocate(); });
+        row.addEventListener("click", () => { stopReel(); dockPick = absolute; showToast("已打开 · " + item[0]); });
+        dockRows.append(row);
+      });
+    }
+
+    function syncDock(resetPick) {
+      dockHits = folderMatches(dockQuery.value);
+      if (resetPick) dockPick = 0;
+      dockPick = Math.min(dockPick, Math.max(dockHits.length - 1, 0));
+      if (dockPick < dockFrom) dockFrom = dockPick;
+      if (dockPick >= dockFrom + page) dockFrom = dockPick - page + 1;
+      dockFrom = Math.max(0, Math.min(dockFrom, Math.max(dockHits.length - page, 0)));
+      dockRows.replaceChildren();
+      renderFolder();
+    }
+
+    function hideDock() {
+      dockQuery.value = "";
+      dockHits = [];
+      dockPick = 0;
+      dockFrom = 0;
+      renderFolder();
+    }
+
+    function openDock(text, focus) {
+      dock.classList.remove("hidden");
+      dockQuery.value = text;
+      if (focus !== false) dockQuery.focus({ preventScroll: true });
+      syncDock(true);
+    }
+
+    function setLocateNote() {
+      locateNote.textContent = playing
+        ? "演示会自己打字。点一下列表，再直接敲字母试试。"
+        : "直接敲字母开始定位，↑↓ 选择，Enter 打开，Esc 收起。";
+    }
+
+    queryInput.addEventListener("input", () => { selected = 0; paintIndex(); renderResults(); });
+    queryInput.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        selected = Math.min(selected + 1, Math.max(hits.length - 1, 0));
+        paintSelection();
+        revealIn(results, results.children[selected]);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        selected = Math.max(selected - 1, 0);
+        paintSelection();
+        revealIn(results, results.children[selected]);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        activate(event.ctrlKey);
+      } else if (event.key === "Escape") {
+        queryInput.value = "";
+        selected = 0;
+        paintIndex();
+        renderResults();
+      }
+    });
+
+    document.querySelector("#index-toggle").addEventListener("click", () => { indexing = !indexing; paintIndex(); });
+    themes.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      launcher.dataset.theme = button.dataset.theme;
+      themes.querySelectorAll("button").forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      renderResults();
+    });
+    document.querySelectorAll("[data-try]").forEach((button) => {
+      button.addEventListener("click", () => {
+        queryInput.value = button.dataset.try;
+        selected = 0;
+        paintIndex();
+        renderResults();
+        queryInput.focus({ preventScroll: true });
+      });
+    });
+
+    function hideMenu() { menu.classList.add("hidden"); }
+    results.addEventListener("contextmenu", (event) => {
+      const row = event.target.closest(".row");
+      if (!row) return;
+      event.preventDefault();
+      selected = [...results.children].indexOf(row);
+      paintSelection();
+      const command = hits[selected] && hits[selected].kind === "command";
+      menu.classList.toggle("ink", launcher.dataset.theme === "ink");
+      menu.querySelectorAll("button").forEach((button) => {
+        const commandOnly = button.dataset.act === "run" || button.dataset.act === "copy-name";
+        button.hidden = command ? !commandOnly : commandOnly;
+      });
+      menu.querySelectorAll("hr").forEach((line) => { line.hidden = command; });
+      menu.classList.remove("hidden");
+      const bounds = menu.parentElement.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(event.clientX - bounds.left, bounds.width - 196)) + "px";
+      menu.style.top = Math.max(8, event.clientY - bounds.top) + "px";
+    });
+    menu.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      const hit = hits[selected];
+      hideMenu();
+      if (!hit) return;
+      const labels = { open: "已打开", reveal: "已定位到文件夹", run: "已运行", copy: "已复制", cut: "已剪切", path: "已复制路径", name: "已复制文件名", "copy-name": "已复制名称", move: "移动到…", delete: "已删除" };
+      showToast((labels[button.dataset.act] || "已完成") + " · " + hit.title);
+    });
+    document.addEventListener("pointerdown", (event) => { if (!menu.contains(event.target)) hideMenu(); });
+
+    explorer.addEventListener("keydown", (event) => {
+      if (event.target === dockQuery) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (playing) stopReel();
+      if (event.key === "Escape") { hideDock(); return; }
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (dock.classList.contains("hidden")) return;
+        event.preventDefault();
+        dockPick = event.key === "ArrowDown" ? Math.min(dockPick + 1, dockHits.length - 1) : Math.max(dockPick - 1, 0);
+        syncDock(false);
+        return;
+      }
+      if (event.key === "Enter" && !dock.classList.contains("hidden")) {
+        event.preventDefault();
+        const item = folder[dockHits[dockPick]];
+        if (item) showToast("已打开 · " + item[0]);
+        return;
+      }
+      if (event.key.length !== 1) return;
+      event.preventDefault();
+      openDock(event.key);
+    });
+    dockQuery.addEventListener("input", () => { if (playing) stopReel(); syncDock(true); });
+    dockQuery.addEventListener("keydown", (event) => {
+      if (playing) stopReel();
+      if (event.key === "Escape") { event.preventDefault(); hideDock(); }
+      else if (event.key === "ArrowDown") { event.preventDefault(); dockPick = Math.min(dockPick + 1, dockHits.length - 1); syncDock(false); }
+      else if (event.key === "ArrowUp") { event.preventDefault(); dockPick = Math.max(dockPick - 1, 0); syncDock(false); }
+      else if (event.key === "Enter") {
+        event.preventDefault();
+        const item = folder[dockHits[dockPick]];
+        if (item) showToast("已打开 · " + item[0]);
+      }
+    });
+
+    function stopReel() {
+      reelToken += 1;
+      playing = false;
+      explorer.classList.remove("playing");
+      keyghost.classList.add("hidden");
+      setLocateNote();
+    }
+    function flashKey(label) {
+      if (reduceMotion) return;
+      keyghost.textContent = label;
+      keyghost.classList.remove("hidden");
+      keyghost.style.animation = "none";
+      void keyghost.offsetWidth;
+      keyghost.style.animation = "";
+    }
+    function typeStep(text, key) { flashKey(key || text.slice(-1)); dockQuery.value = text; syncDock(true); }
+    function moveStep(pick) { dockPick = Math.min(pick, Math.max(dockHits.length - 1, 0)); syncDock(false); }
+    function playReel() {
+      stopReel();
+      const token = ++reelToken;
+      playing = true;
+      explorer.classList.add("playing");
+      setLocateNote();
+      hideDock();
+      const steps = [
+        [700, () => typeStep("r")],
+        [1300, () => typeStep("ri")],
+        [1900, () => typeStep("rid")],
+        [2600, () => moveStep(1)],
+        [3200, () => moveStep(2)],
+        [3900, () => typeStep("ride")],
+        [4700, () => typeStep("rid", "⌫")],
+        [5200, () => typeStep("ri", "⌫")],
+        [5700, () => typeStep("r", "⌫")],
+        [6300, () => { flashKey("Esc"); hideDock(); }],
+        [7600, () => { if (token === reelToken) playReel(); }]
+      ];
+      steps.forEach(([delay, run]) => {
+        setTimeout(() => { if (token === reelToken && playing) run(); }, delay);
+      });
+    }
+
+    dock.addEventListener("wheel", (event) => {
+      if (dockHits.length <= page) return;
+      event.preventDefault();
+      dockFrom = Math.max(0, Math.min(dockHits.length - page, dockFrom + (event.deltaY > 0 ? 1 : -1)));
+      renderDock(dockQuery.value);
+    }, { passive: false });
+    document.querySelector("#replay").addEventListener("click", () => { if (!reduceMotion) playReel(); });
+    filesBox.addEventListener("pointerdown", () => { if (playing) stopReel(); });
+
+    fetch("https://api.github.com/repos/c01djc/findthing")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (!data || typeof data.stargazers_count !== "number") return;
+        const text = data.stargazers_count.toLocaleString("en-US");
+        document.querySelectorAll("[data-stars]").forEach((node) => {
+          node.hidden = false;
+          node.textContent = text;
+        });
+        document.querySelectorAll(".star").forEach((link) => {
+          link.setAttribute("aria-label", "在 GitHub 上标星，目前 " + text);
+        });
+      })
+      .catch(() => {});
+
+    renderResults();
+    paintIndex();
+    renderFolder();
+    if (reduceMotion) {
+      setLocateNote();
+      openDock("rid", false);
+    } else playReel();
+  </script>
+</body>
+</html>
