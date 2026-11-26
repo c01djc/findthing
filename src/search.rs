@@ -105,7 +105,13 @@ pub fn query(index: &Index, raw: &str, limit: usize, folder: &str, recent: &[Str
         hits.extend(commands::matching(&parsed.name));
         hits.extend(apps::matching(&parsed.name));
     }
-    hits.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.title.len().cmp(&b.1.title.len())));
+    // Apps and ordinary files stay ahead of folders; pictures and media sink.
+    hits.sort_by(|a, b| {
+        type_tier(&b.1)
+            .cmp(&type_tier(&a.1))
+            .then_with(|| b.0.cmp(&a.0))
+            .then_with(|| a.1.title.len().cmp(&b.1.title.len()))
+    });
     hits.truncate(limit);
     hits.into_iter().map(|(_, hit)| hit).collect()
 }
@@ -317,7 +323,7 @@ fn score_one(len: u32, starts: bool, dir: bool) -> i32 {
     if len == 0 {
         return 0;
     }
-    let bonus = if dir { 25 } else { 0 };
+    let bonus = kind_score_bump("", dir);
     let extra = len as i32 - 1;
     if starts {
         if len == 1 {
@@ -334,13 +340,59 @@ pub(crate) fn score_title(name: &str, needle: &str) -> i32 {
     score_name(name, needle, false)
 }
 
+fn ext_of(name: &str) -> &str {
+    name.rsplit_once('.')
+        .map(|(_, ext)| ext)
+        .filter(|ext| !ext.is_empty() && ext.len() <= 8)
+        .unwrap_or("")
+}
+
+fn is_app_name(name: &str) -> bool {
+    let ext = ext_of(name);
+    ext.eq_ignore_ascii_case("exe") || ext.eq_ignore_ascii_case("lnk")
+}
+
+fn is_media_name(name: &str) -> bool {
+    let ext = ext_of(name);
+    matches!(
+        ext.to_ascii_lowercase().as_str(),
+        "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "bmp" | "ico" | "tif" | "tiff"
+            | "mp4" | "mkv" | "mov" | "avi" | "wmv" | "webm" | "mp3" | "wav" | "flac" | "aac" | "m4a"
+    )
+}
+
+/// Higher stays nearer the top of the result list.
+fn type_tier(hit: &Hit) -> i8 {
+    match hit.kind {
+        Kind::Command => 5,
+        Kind::Dir => 2,
+        Kind::File if hit.detail == "应用" || is_app_name(&hit.title) => 4,
+        Kind::File if is_media_name(&hit.title) => 0,
+        Kind::File => 3,
+    }
+}
+
+fn kind_score_bump(name: &str, dir: bool) -> i32 {
+    if dir {
+        20
+    } else if name.is_empty() {
+        50
+    } else if is_media_name(name) {
+        -120
+    } else if is_app_name(name) {
+        80
+    } else {
+        50
+    }
+}
+
 fn score_name(name: &str, needle: &str, dir: bool) -> i32 {
     let bytes = name.as_bytes();
     let query = needle.as_bytes();
     if query.is_empty() || bytes.is_empty() {
         return 0;
     }
-    let bonus = if dir { 25 } else { 0 };
+    let bonus = kind_score_bump(name, dir);
     if bytes.len() == query.len() && bytes.eq_ignore_ascii_case(query) {
         return 2000 + bonus;
     }
@@ -511,6 +563,30 @@ mod tests {
         index.push(drive, "年度报告.docx", false);
         let hits = ask(&index, "年度");
         assert_eq!(hits[0].title, "年度报告.docx");
+    }
+
+    #[test]
+    fn apps_and_files_outrank_folders_and_pictures() {
+        let mut index = Index::default();
+        let drive = index.push(u32::MAX, "D:", true);
+        index.push(drive, "demo.png", false);
+        index.push(drive, "demo", true);
+        index.push(drive, "demo.docx", false);
+        index.push(drive, "demo.exe", false);
+        let titles = ask(&index, "demo")
+            .into_iter()
+            .filter(|hit| hit.kind != Kind::Command)
+            .map(|hit| hit.title)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            titles,
+            vec![
+                "demo.exe".to_string(),
+                "demo.docx".to_string(),
+                "demo".to_string(),
+                "demo.png".to_string()
+            ]
+        );
     }
 
     #[test]

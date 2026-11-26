@@ -622,7 +622,16 @@ export component Launcher inherits Window {
     property <length> row-radius: ledger ? 8px : 12px;
     property <int> shown: min(rows.length, docked ? 9 : 8);
     in-out property <int> dock-from: 0;
+    in-out property <length> dock-scroll: 0px;
+    property <bool> dock-from-wheel: false;
+    property <length> dock-shown: 0px;
+    property <duration> dock-glide: 0ms;
+    property <bool> dock-gliding: root.dock-shown != root.dock-scroll;
+    animate dock-shown { duration: root.dock-glide; easing: ease-out; }
+    property <bool> dock-wheel: false;
     property <int> dock-page: root.save-dialog && root.slots > 0 ? root.slots : 9;
+    property <length> dock-view: root.slots * 32px;
+    property <length> dock-span: root.rows.length <= root.dock-page ? 0px : root.rows.length * 32px - root.dock-view;
     property <bool> unmatched: index-done && rows.length == 0 && (query != "" || composing != "");
     property <length> miss-h: !unmatched ? 0px : docked ? 22px : ledger ? 26px : split ? 28px : 30px;
     in-out property <length> dock-w: 572px;
@@ -671,34 +680,54 @@ export component Launcher inherits Window {
     callback vanished();
     callback sized();
 
+    changed dock-scroll => {
+        if root.dock-from-wheel {
+            root.dock-glide = 160ms;
+            root.dock-from-wheel = false;
+        } else {
+            root.dock-glide = 0ms;
+        }
+        root.dock-shown = root.dock-scroll;
+        root.dock-from = root.dock-span <= 0px ? 0 : min(Math.floor(root.dock-scroll / 32px), max(root.rows.length - root.dock-page, 0));
+    }
+
     public function reveal-row() {
         if !root.docked {
             return;
         }
-        if root.rows.length <= root.dock-page {
+        root.dock-from-wheel = false;
+        if root.rows.length == 0 {
+            root.dock-scroll = 0px;
             root.dock-from = 0;
             return;
         }
-        if root.selected < root.dock-from {
-            root.dock-from = root.selected;
-        } else if root.selected >= root.dock-from + root.dock-page {
-            root.dock-from = root.selected + 1 - root.dock-page;
+        if root.selected * 32px < root.dock-scroll {
+            root.dock-scroll = root.selected * 32px;
+        } else if root.selected * 32px + 32px > root.dock-scroll + root.dock-view {
+            root.dock-scroll = root.selected * 32px + 32px - root.dock-view;
         }
-        if root.dock-from < 0 {
-            root.dock-from = 0;
-        }
-        if root.dock-from > root.rows.length - root.dock-page {
-            root.dock-from = root.rows.length - root.dock-page;
-        }
+        root.dock-scroll = max(0px, min(root.dock-scroll, root.dock-span));
     }
 
     changed selected => {
         root.reveal-row();
     }
 
+    changed rows => {
+        root.dock-from-wheel = false;
+        root.dock-glide = 0ms;
+        root.dock-scroll = 0px;
+        root.dock-shown = 0px;
+        root.dock-from = 0;
+        root.dock-quiet = 0;
+    }
+
     in-out property <length> list-scroll: 0;
     in-out property <bool> list-wheel: false;
     property <length> list-span: root.rows.length <= 8 ? 0px : (root.rows.length - 8) * (root.row-h + 2px);
+    // After a wheel tick, ignore hover retargets briefly so rows sliding
+    // under the cursor do not hammer Explorer via jump().
+    in-out property <int> dock-quiet: 0;
 
     public function scroll-results(delta: length) {
         if root.docked {
@@ -711,6 +740,15 @@ export component Launcher inherits Window {
 
     public function wheel(delta: length) {
         if root.rows.length == 0 {
+            return;
+        }
+        if root.docked {
+            if root.dock-span <= 0px {
+                return;
+            }
+            root.dock-quiet = 8;
+            root.dock-from-wheel = true;
+            root.dock-scroll = max(0px, min(root.dock-scroll - delta, root.dock-span));
             return;
         }
         if delta < 0px {
@@ -868,6 +906,14 @@ export component Launcher inherits Window {
         running: root.docked && root.save-dialog;
         triggered => {
             root.nudge-save();
+        }
+    }
+
+    Timer {
+        interval: 40ms;
+        running: root.docked && root.dock-quiet > 0;
+        triggered => {
+            root.dock-quiet = max(root.dock-quiet - 1, 0);
         }
     }
 
@@ -1328,105 +1374,130 @@ export component Launcher inherits Window {
         drop-shadow-color: #17203328;
         drop-shadow-offset-y: root.save-dialog || root.split ? 0px : 8px;
 
-    for row[index] in root.rows: Rectangle {
-        property <bool> on-page: index >= root.dock-from && index < root.dock-from + root.dock-page;
-        x: on-page ? 4px : -4000px;
-        y: (root.save-dialog ? 40px : 4px) + (index - root.dock-from) * 32px;
-        width: parent.width - 24px;
-        height: 32px;
-        border-radius: root.row-radius;
-        background: index == root.selected ? #d6e4f5 : (root.save-dialog ? (root.dark ? root.ink : #fffdf9) : transparent);
-        animate background { duration: 160ms; easing: ease-out; }
+    // Docked lists (save bar + Explorer locate): one content offset scrolls everything.
+    Rectangle {
+        x: 0px;
+        y: root.save-dialog ? 40px : 4px;
+        width: parent.width;
+        height: root.dock-view;
+        clip: true;
 
         TouchArea {
-            width: parent.width;
-            height: 32px;
+            width: 100%;
+            height: 100%;
             scroll-event(event) => {
                 root.wheel(event.delta-y);
                 accept
             }
-            changed has-hover => {
-                if self.has-hover && root.selected != index {
-                    root.selected = index;
-                    root.jump(index);
+        }
+
+        Rectangle {
+            y: -root.dock-shown;
+            width: parent.width;
+            height: max(root.rows.length * 32px, root.dock-view);
+
+            for row[index] in root.rows: Rectangle {
+                x: 4px;
+                y: index * 32px;
+                width: parent.width - 24px;
+                height: 32px;
+                border-radius: root.row-radius;
+                background: index == root.selected ? #d6e4f5 : (root.save-dialog ? (root.dark ? root.ink : #fffdf9) : transparent);
+
+                TouchArea {
+                    width: parent.width;
+                    height: 32px;
+                    scroll-event(event) => {
+                        root.wheel(event.delta-y);
+                        accept
+                    }
+                    changed has-hover => {
+                        if root.save-dialog || root.dock-quiet > 0 || root.dock-gliding {
+                            return;
+                        }
+                        if self.has-hover && root.selected != index {
+                            root.selected = index;
+                            root.jump(index);
+                        }
+                    }
+                    clicked => {
+                        root.selected = index;
+                        if root.save-dialog {
+                            root.submitted(index, false);
+                        } else {
+                            root.jump(index);
+                        }
+                    }
+                    pointer-event(event) => {
+                        if event.button == PointerEventButton.right && event.kind == PointerEventKind.up {
+                            root.selected = index;
+                            root.context-menu(index);
+                        }
+                    }
+                }
+
+                KindMark {
+                    x: 8px;
+                    y: 7px;
+                    kind: row.kind;
+                }
+
+                if root.save-dialog: Text {
+                    x: 32px;
+                    y: 6px;
+                    width: 220px;
+                    height: 20px;
+                    text: row.lead + row.hit + row.tail;
+                    font-size: 14px;
+                    color: root.title-color;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+
+                if root.save-dialog: Text {
+                    x: 260px;
+                    y: 7px;
+                    width: parent.width - 276px;
+                    height: 18px;
+                    text: row.detail;
+                    font-size: 13px;
+                    color: root.title-color;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+
+                if !root.save-dialog: Text {
+                    x: 34px;
+                    y: 6px;
+                    width: parent.width - 130px;
+                    height: 20px;
+                    text: row.lead + row.hit + row.tail;
+                    font-size: 14px;
+                    color: root.title-color;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+
+                if !root.save-dialog: Rectangle {
+                    x: parent.width - 90px;
+                    y: 0px;
+                    width: 82px;
+                    height: 32px;
+                    background: index == root.selected ? #d6e4f5 : transparent;
+                }
+
+                if !root.save-dialog: Text {
+                    x: parent.width - 90px;
+                    y: 8px;
+                    width: 82px;
+                    height: 16px;
+                    text: row.detail;
+                    font-size: 12px;
+                    color: root.detail-color;
+                    horizontal-alignment: right;
+                    overflow: elide;
                 }
             }
-            clicked => {
-                root.selected = index;
-                if root.save-dialog {
-                    root.submitted(index, false);
-                } else {
-                    root.jump(index);
-                }
-            }
-            pointer-event(event) => {
-                if event.button == PointerEventButton.right && event.kind == PointerEventKind.up {
-                    root.selected = index;
-                    root.context-menu(index);
-                }
-            }
-        }
-
-        KindMark {
-            x: 8px;
-            y: 7px;
-            kind: row.kind;
-        }
-
-        if !root.save-dialog: Text {
-            x: 34px;
-            y: 6px;
-            width: parent.width - 130px;
-            height: 20px;
-            text: row.lead + row.hit + row.tail;
-            font-size: 14px;
-            color: root.title-color;
-            vertical-alignment: center;
-            overflow: elide;
-        }
-
-        if !root.save-dialog: Rectangle {
-            x: parent.width - 90px;
-            y: 0px;
-            width: 82px;
-            height: 32px;
-            background: index == root.selected ? #d6e4f5 : transparent;
-        }
-
-        if !root.save-dialog: Text {
-            x: parent.width - 90px;
-            y: 8px;
-            width: 82px;
-            height: 16px;
-            text: row.detail;
-            font-size: 12px;
-            color: root.detail-color;
-            horizontal-alignment: right;
-            overflow: elide;
-        }
-
-        if root.save-dialog: Text {
-            x: 32px;
-            y: 6px;
-            width: 220px;
-            height: 20px;
-            text: row.lead + row.hit + row.tail;
-            font-size: 14px;
-            color: root.title-color;
-            vertical-alignment: center;
-            overflow: elide;
-        }
-
-        if root.save-dialog: Text {
-            x: 260px;
-            y: 7px;
-            width: parent.width - 276px;
-            height: 18px;
-            text: row.detail;
-            font-size: 13px;
-            color: root.title-color;
-            vertical-alignment: center;
-            overflow: elide;
         }
     }
 
@@ -1439,7 +1510,7 @@ export component Launcher inherits Window {
         background: root.dark ? #f4f0e633 : #17203314;
 
         Rectangle {
-            y: (parent.height - self.height) * root.dock-from / max(root.rows.length - root.dock-page, 1);
+            y: (parent.height - self.height) * root.dock-shown / max(root.dock-span, 1px);
             width: 4px;
             height: max(parent.height * root.dock-page / max(root.rows.length, 1), 18px);
             border-radius: 2px;
