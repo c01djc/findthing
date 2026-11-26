@@ -6,6 +6,10 @@ Windows 上的轻量文件搜索：文件名即时检索、文件夹内定位、
   <img src="docs/ui/search-paper.png" alt="findthing 素纸外观" width="560" />
 </p>
 
+## 下载
+
+Windows x64 可执行文件：[Releases](https://github.com/c01djc/findthing/releases/latest) 里下载 `findthing.exe`，直接运行即可。
+
 ## 要求
 
 - Windows 10 / 11（x64）
